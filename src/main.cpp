@@ -1,5 +1,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/vec3.hpp>
 #include <iostream>
 
 const GLuint WIDTH = 800, HEIGHT = 600;

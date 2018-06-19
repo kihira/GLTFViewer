@@ -11,8 +11,18 @@ else()
 endif()
 
 # Find packages
-find_package(GLFW3 3.2 REQUIRED)
-find_package(GLM REQUIRED)
+if (MSVC OR MINGW)
+    # Add GLFW
+    add_subdirectory(./glfw)
+    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+else()
+    find_package(GLFW3 3.2 REQUIRED)
+    find_package(GLM REQUIRED)
+endif()
+
+file(GLOB SOURCES )
 
 add_executable(GLTFViewer src/main.cpp src/glad.c)
 
