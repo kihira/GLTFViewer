@@ -1,3 +1,7 @@
 cmake-build-debug*/
 bin/
 .idea/
+
+# Ignore libraries
+glm/
+glfw/
