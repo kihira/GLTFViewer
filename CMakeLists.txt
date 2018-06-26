@@ -13,8 +13,7 @@ endif ()
 if (USE_GLM_PACKAGE)
     find_package(GLM REQUIRED)
 else ()
-    # todo might not work
-    add_subdirectory(./glm)
+    include_directories(GLTFViewer glm)
 endif ()
 
 # Load GLFW
@@ -33,7 +32,12 @@ include_directories(GLTFViewer ./nanovg/src)
 
 # Load GLAD
 include_directories(GLTFViewer ./glad)
+list(APPEND LIB_SOURCES glad/glad.c)
 
-add_executable(GLTFViewer src/main.cpp glad/glad.c)
+# Load ImGui
+include_directories(GLTFViewer ./imgui)
+list(APPEND LIB_SOURCES imgui/imgui.cpp imgui/imgui_demo.cpp imgui/imgui_draw.cpp imgui/imgui_impl_opengl3.cpp imgui/imgui_impl_glfw.cpp)
+
+add_executable(GLTFViewer src/main.cpp ${LIB_SOURCES})
 
 target_link_libraries(GLTFViewer glfw)
