@@ -7,6 +7,7 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "Camera.h"
+#include "gltfloader.h"
 
 static void glfwErrorCallback(int error, const char *desc) {
     std::cerr << "GLFW Error " << error << ": " << desc << std::endl;
@@ -66,13 +67,15 @@ int main() {
     // Init camera
     camera = new Camera();
 
+    gltfloader::Load("BoxTextured.glb");
+
     // Game loop
     while (!glfwWindowShouldClose(window)) {
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height);
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
         // Start imgui
         ImGui_ImplOpenGL3_NewFrame();
