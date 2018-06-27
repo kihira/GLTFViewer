@@ -4,7 +4,9 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-#include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include "Camera.h"
 
 static void glfwErrorCallback(int error, const char *desc) {
     std::cerr << "GLFW Error " << error << ": " << desc << std::endl;
@@ -16,11 +18,11 @@ static void keyCallback(GLFWwindow *window, int key, int scancode, int action, i
 }
 
 int main() {
+    Camera* camera;
     glfwSetErrorCallback(glfwErrorCallback);
 
-    std::cout << "GLFW " << glfwGetVersionString() << std::endl;
-
     // Setup and init GLFW
+    std::cout << "GLFW " << glfwGetVersionString() << std::endl;
     if (!glfwInit()) {
         std::cerr << "Failed to init GLFW" << std::endl;
         exit(EXIT_FAILURE);
@@ -60,7 +62,9 @@ int main() {
     ImGui_ImplOpenGL3_Init();
     ImGui::StyleColorsDark();
     ImGuiIO &io = ImGui::GetIO();
-    (void) io;
+
+    // Init camera
+    camera = new Camera();
 
     // Game loop
     while (!glfwWindowShouldClose(window)) {
@@ -74,6 +78,9 @@ int main() {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+
+        // Update camera
+        camera->update(width, height);
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
