@@ -4,9 +4,10 @@ project(GLTFViewer)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 
-if (NOT WIN32)
+if (VCPKG_TOOLCHAIN OR NOT WIN32)
     option(USE_GLM_PACKAGE "Use find_package for GLM" ON)
     option(USE_GLFW_PACKAGE "Use find_package for GLFW" ON)
+    option(USE_JSON_PACKAGE "Use find_package for JSON for Modern C++" ON)
 endif ()
 
 # Load GLM
@@ -27,17 +28,21 @@ set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
-# Load nanoVG
-include_directories(GLTFViewer ./nanovg/src)
+# Load JSON for Modern C++
+if (USE_JSON_PACKAGE)
+    find_package(nlohmann_json 3.1.2 REQUIRED)
+else ()
+    include_directories(GLTFViewer include)
+endif ()
 
 # Load GLAD
-include_directories(GLTFViewer ./glad)
+include_directories(GLTFViewer glad)
 list(APPEND LIB_SOURCES glad/glad.c)
 
 # Load ImGui
-include_directories(GLTFViewer ./imgui)
+include_directories(GLTFViewer imgui)
 list(APPEND LIB_SOURCES imgui/imgui.cpp imgui/imgui_demo.cpp imgui/imgui_draw.cpp imgui/imgui_impl_opengl3.cpp imgui/imgui_impl_glfw.cpp)
 
-add_executable(GLTFViewer ${LIB_SOURCES} src/main.cpp src/Camera.cpp src/Camera.h src/vector.hpp)
+add_executable(GLTFViewer ${LIB_SOURCES} src/main.cpp src/Camera.cpp src/Camera.h src/vector.hpp src/gltfloader.cpp src/gltfloader.h)
 
 target_link_libraries(GLTFViewer glfw)
