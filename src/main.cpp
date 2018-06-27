@@ -7,7 +7,7 @@
 #include <glm/vec3.hpp>
 
 static void glfwErrorCallback(int error, const char *desc) {
-    fprintf(stderr, "GLFW Error %d: %s\n", error, desc);
+    std::cerr << "GLFW Error " << error << ": " << desc << std::endl;
 }
 
 static void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
