@@ -6,7 +6,7 @@
 #include <iostream>
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "Camera.h"
+#include "camera.h"
 #include "gltfloader.h"
 
 static void glfwErrorCallback(int error, const char *desc) {
@@ -65,7 +65,7 @@ int main() {
     ImGuiIO &io = ImGui::GetIO();
 
     // Init camera
-    camera = new Camera();
+    camera = new Camera("Default");
 
     gltfloader::Load("BoxTextured.glb");
 
