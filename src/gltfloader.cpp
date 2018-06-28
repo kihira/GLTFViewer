@@ -59,12 +59,11 @@ void gltfloader::Load(std::string filePath) {
     std::cout << "Reading JSON chunk of length " << chunkLength << std::endl;
 
     // Read JSON chunk data
-    char* chunkData = new char[chunkLength];
-    file.read(chunkData, chunkLength - 2);
-    file.seekg(2, std::ios::cur); // Skip two bytes which I believe is the string terminator. Can't have it part of the data array as causes malformed string
+    std::vector<unsigned char> data(chunkLength);
+    file.read(reinterpret_cast<char *>(&data[0]), chunkLength);
 
     try {
-        jsonData = json::parse(chunkData);
+        jsonData = json::parse(data);
     } catch (const std::exception& e) {
         std::cerr << "Failed to parse JSON data: " << e.what() << std::endl;
         return;
@@ -81,6 +80,8 @@ void gltfloader::Load(std::string filePath) {
         }
 
         std::cout << "Reading binary chunk of length " << chunkLength << std::endl;
+        std::vector<unsigned char> binData(chunkLength);
+        file.read(reinterpret_cast<char *>(&binData[0]), chunkLength);
     }
 
     file.close();
