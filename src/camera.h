@@ -7,18 +7,39 @@
 class Camera {
 public:
     const char *name;
-    glm::mat4 transform;
     glm::mat4 projection;
+    float zFar;
+    float zNear;
 
-    void update(float width, float height);
+    virtual void update(float width, float height) = 0;
 
+protected:
     explicit Camera(const char *name);
 
 private:
-    glm::vec3 pos = glm::vec3();
-    glm::vec3 lookPos = glm::vec3();
-    float fov = 70.f;
-    bool ortho = false;
+    virtual void gui() = 0;
+};
+
+class OrthographicCamera : public Camera {
+public:
+    float xMag;
+    float yMag;
+
+    explicit OrthographicCamera(const char *name);
+
+private:
+    void update(float width, float height) override;
+};
+
+class PerspectiveCamera : public Camera {
+public:
+    float aspectRatio;
+    float fov;
+
+    explicit PerspectiveCamera(const char *name);
+
+private:
+    void update(float width, float height) override;
 };
 
 #endif //GLTFVIEWER_CAMERA_H

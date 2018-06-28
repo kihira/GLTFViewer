@@ -4,23 +4,54 @@
 #include "camera.h"
 #include "vector.hpp"
 
-void Camera::update(float width, float height) {
-    if (ImGui::Begin("Camera")) {
+Camera::Camera(const char *name) : name(name) {}
+
+/*
+ * Orthographic Camera
+ */
+
+OrthographicCamera::OrthographicCamera(const char *name) : Camera(name) {}
+
+void OrthographicCamera::update(float width, float height) {
+    //projection = glm::ortho(0.f, xMag, 0.f, yMag);
+    projection[0][0] = 1.f / xMag;
+    projection[1][1] = 1.f / yMag;
+    projection[2][2] = 2.f / (zNear / zFar);
+    projection[3][2] = (zFar + zNear) / (zNear / zFar);
+
+    Camera::update(width, height);
+
+    if (ImGui::Begin("Orthographic Camera")) {
         ImGui::Text(name);
-        ImGui::DragFloat3("Position", (float *) glm::value_ptr(pos));
-        ImGui::DragFloat3("Look At", (float *) glm::value_ptr(lookPos));
-        ImGui::SliderFloat("FOV", &fov, 30.f, 120.f);
-        ImGui::Checkbox("Orthographic", &ortho);
+        ImGui::DragFloat("X Mag", &xMag);
+        ImGui::DragFloat("Y Mag", &yMag);
         ImGui::End();
-    }
-
-    transform = glm::lookAt(pos, lookPos, vector::UP);
-
-    if (ortho) {
-        projection = glm::perspective(fov, width / height, .1f, 500.f);
-    } else {
-        projection = glm::ortho(0.f, width, 0.f, height);
     }
 }
 
-Camera::Camera(const char *name) : name(name) {}
+/*
+ * Perspective Camera
+ */
+
+PerspectiveCamera::PerspectiveCamera(const char *name) : Camera(name) {}
+
+void PerspectiveCamera::update(float width, float height) {
+    // todo should look into using calculated aspect ratio as option instead of the defined one
+    if (zFar == nullptr) {
+        projection = glm::infinitePerspective(fov, aspectRatio, zNear);
+    } else {
+        projection = glm::perspective(fov, aspectRatio, zNear, zFar);
+    }
+
+    Camera::update(width, height);
+
+    if (ImGui::Begin("Perspective Camera")) {
+        ImGui::Text(name);
+        ImGui::SliderFloat("FOV", &fov, 30.f, 120.f);
+        ImGui::SliderFloat("Aspect Ratio", &aspectRatio, 0.f, 10.f);
+        ImGui::DragFloat("Z Near", &zNear, 1.f, .1f, 1000.f);
+        ImGui::SameLine(10.f);
+        ImGui::DragFloat("Z Far", &zFar, 1.f, .1f, 1000.f);
+        ImGui::End();
+    }
+}

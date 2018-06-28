@@ -9,6 +9,8 @@ namespace gltfloader {
     void Load(std::string filePath);
 
     Node *LoadNode(int id);
+
+    Camera *LoadCamera(int id);
 };
 
 #endif

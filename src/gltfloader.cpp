@@ -5,10 +5,9 @@
 #include "gltfloader.h"
 #include "camera.h"
 #include "node.h"
+#include "scene.h"
 
-using json = nlohmann::json;
-
-json jsonData;
+nlohmann::json jsonData;
 
 void gltfloader::Load(std::string filePath) {
     if (!filePath.compare(filePath.length() - 4, 3, "glb")) {
@@ -63,7 +62,7 @@ void gltfloader::Load(std::string filePath) {
     file.read(reinterpret_cast<char *>(&data[0]), chunkLength);
 
     try {
-        jsonData = json::parse(data);
+        jsonData = nlohmann::json::parse(data);
     } catch (const std::exception &e) {
         std::cerr << "Failed to parse JSON data: " << e.what() << std::endl;
         return;
@@ -98,16 +97,17 @@ void gltfloader::Load(std::string filePath) {
     // Load scenes
     if (jsonData.find("scenes") != jsonData.end()) {
         for (auto &elem: jsonData["scenes"]) {
+            Scene *scene = new Scene(elem.find("name") != elem.end() ? elem["name"] : "Scene");
             if (elem.find("nodes") == elem.end()) continue;
             for (int nodeId : elem["nodes"]) {
-                LoadNode(nodeId); // todo assign node to scene. have node cache
+                scene->nodes.push_back(LoadNode(nodeId));
             }
         }
     }
 }
 
 Node *gltfloader::LoadNode(int id) {
-    json nodeData = jsonData["nodes"][id];
+    nlohmann::json nodeData = jsonData["nodes"][id];
     Node *node = new Node();
 
     if (nodeData.find("matrix") != nodeData.end()) {
@@ -132,5 +132,35 @@ Node *gltfloader::LoadNode(int id) {
         }
     }
 
+    if (nodeData.find("camera") != nodeData.end()) {
+        node->camera = LoadCamera(nodeData["camera"]);
+    }
+
     return node;
+}
+
+
+Camera* gltfloader::LoadCamera(int id) {
+    nlohmann::json cameraData = jsonData["cameras"][id];
+
+    if (cameraData["type"] == "perspective") {
+        PerspectiveCamera *camera = new PerspectiveCamera(cameraData["name"]);
+        camera->aspectRatio = cameraData["aspectRatio"];
+        camera->fov = cameraData["yfov"];
+        camera->zNear = cameraData["znear"];
+        if (cameraData.find("zfar") != cameraData.end()) {
+            camera->zFar = cameraData["zfar"];
+        }
+
+        return camera;
+    }
+    else {
+        OrthographicCamera *camera = new OrthographicCamera(cameraData["name"]);
+        camera->xMag = cameraData["xmag"];
+        camera->yMag = cameraData["ymag"];
+        camera->zNear = cameraData["znear"];
+        camera->zFar = cameraData["zfar"];
+
+        return camera;
+    }
 }

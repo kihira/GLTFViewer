@@ -4,6 +4,8 @@
 
 #include <glm/vec3.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <vector>
+#include "camera.h"
 
 class Node {
 public:
@@ -11,6 +13,10 @@ public:
     glm::vec3 pos = glm::vec3(0, 0, 0);
     glm::quat rot = glm::quat(0, 0, 0, 1);
     glm::vec3 scale = glm::vec3(1, 1, 1);
+    glm::mat4 matrix = glm::mat4();
+    std::vector<Node *> children;
+    Camera *camera;
+    int mesh;
 };
 
 
