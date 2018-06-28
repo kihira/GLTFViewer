@@ -7,8 +7,8 @@
 void Camera::update(float width, float height) {
     if (ImGui::Begin("Camera")) {
         ImGui::Text(name);
-        ImGui::DragFloat3("Position", (float *)glm::value_ptr(pos));
-        ImGui::DragFloat3("Look At", (float *)glm::value_ptr(lookPos));
+        ImGui::DragFloat3("Position", (float *) glm::value_ptr(pos));
+        ImGui::DragFloat3("Look At", (float *) glm::value_ptr(lookPos));
         ImGui::SliderFloat("FOV", &fov, 30.f, 120.f);
         ImGui::Checkbox("Orthographic", &ortho);
         ImGui::End();
@@ -23,6 +23,4 @@ void Camera::update(float width, float height) {
     }
 }
 
-Camera::Camera(const char *name) {
-    this->name = name;
-}
+Camera::Camera(const char *name) : name(name) {}

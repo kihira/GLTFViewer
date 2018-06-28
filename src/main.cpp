@@ -19,7 +19,7 @@ static void keyCallback(GLFWwindow *window, int key, int scancode, int action, i
 }
 
 int main() {
-    Camera* camera;
+    Camera *camera;
     glfwSetErrorCallback(glfwErrorCallback);
 
     // Setup and init GLFW
@@ -75,12 +75,19 @@ int main() {
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height);
 
-        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // NOLINT
 
         // Start imgui
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+
+        ImGui::BeginMainMenuBar();
+        if (ImGui::BeginMenu("Scenes")) {
+            ImGui::MenuItem("Scene 1");
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
 
         // Update camera
         camera->update(width, height);

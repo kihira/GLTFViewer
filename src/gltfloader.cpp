@@ -18,7 +18,7 @@ void gltfloader::Load(std::string filePath) {
 
     // Open file and get length
     std::ifstream file;
-    file.open(filePath, std::ios::in|std::ios::binary|std::ios::ate);
+    file.open(filePath, std::ios::in | std::ios::binary | std::ios::ate);
     if (!file.is_open()) {
         std::cerr << "Failed to open file" << std::endl;
         return;
@@ -28,9 +28,9 @@ void gltfloader::Load(std::string filePath) {
 
     // Read file header
     uint32_t magic, version, length = 0;
-    file.read(reinterpret_cast<char*>(&magic), sizeof(uint32_t));
-    file.read(reinterpret_cast<char*>(&version), sizeof(uint32_t));
-    file.read(reinterpret_cast<char*>(&length), sizeof(uint32_t));
+    file.read(reinterpret_cast<char *>(&magic), sizeof(uint32_t));
+    file.read(reinterpret_cast<char *>(&version), sizeof(uint32_t));
+    file.read(reinterpret_cast<char *>(&length), sizeof(uint32_t));
 
     if (fileLength != length) {
         std::cerr << "Expected file of length " << length << " but got " << fileLength << std::endl;
@@ -48,8 +48,8 @@ void gltfloader::Load(std::string filePath) {
 
     // Read JSON chunk header
     uint32_t chunkLength, chunkType = 0;
-    file.read(reinterpret_cast<char*>(&chunkLength), sizeof(uint32_t));
-    file.read(reinterpret_cast<char*>(&chunkType), sizeof(uint32_t));
+    file.read(reinterpret_cast<char *>(&chunkLength), sizeof(uint32_t));
+    file.read(reinterpret_cast<char *>(&chunkType), sizeof(uint32_t));
 
     if (chunkType != 0x4E4F534A) {
         std::cerr << "Expected JSON chunk but didn't get it" << std::endl;
@@ -64,15 +64,15 @@ void gltfloader::Load(std::string filePath) {
 
     try {
         jsonData = json::parse(data);
-    } catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         std::cerr << "Failed to parse JSON data: " << e.what() << std::endl;
         return;
     }
 
     // Read binary chunk (if exists)
     if (file.tellg() != length) {
-        file.read(reinterpret_cast<char*>(&chunkLength), sizeof(uint32_t));
-        file.read(reinterpret_cast<char*>(&chunkType), sizeof(uint32_t));
+        file.read(reinterpret_cast<char *>(&chunkLength), sizeof(uint32_t));
+        file.read(reinterpret_cast<char *>(&chunkType), sizeof(uint32_t));
 
         if (chunkType != 0x004E4942) {
             std::cerr << "Expected binary chunk but didn't get it" << std::endl;
@@ -91,10 +91,13 @@ void gltfloader::Load(std::string filePath) {
         std::cerr << "Only glTF version 2 files are supported" << std::endl;
         return;
     }
+    if (jsonData.find("extensionsRequired") != jsonData.end()) {
+        std::cerr << "Unable to load asset as it requires extensions not available" << std::endl;
+    }
 
     // Load scenes
     if (jsonData.find("scenes") != jsonData.end()) {
-        for (auto& elem: jsonData["scenes"]) {
+        for (auto &elem: jsonData["scenes"]) {
             if (elem.find("nodes") == elem.end()) continue;
             for (int nodeId : elem["nodes"]) {
                 LoadNode(nodeId); // todo assign node to scene. have node cache
@@ -103,14 +106,13 @@ void gltfloader::Load(std::string filePath) {
     }
 }
 
-Node* gltfloader::LoadNode(int id) {
+Node *gltfloader::LoadNode(int id) {
     json nodeData = jsonData["nodes"][id];
-    Node* node = new Node();
+    Node *node = new Node();
 
     if (nodeData.find("matrix") != nodeData.end()) {
         // todo load matrix data
-    }
-    else {
+    } else {
         if (nodeData.find("translation") != nodeData.end()) {
             // todo look into casting instead?
             node->pos.x = nodeData["translation"][0];

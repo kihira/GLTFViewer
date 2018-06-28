@@ -2,9 +2,15 @@
 #define GLTFVIEWER_SCENE_H
 
 
+#include <vector>
+#include "node.h"
+
 class Scene {
 public:
-    const char* name;
+    const char *name;
+    std::vector<Node *> nodes;
+
+    Scene(const char *name);
 };
 
 

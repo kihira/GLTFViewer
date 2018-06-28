@@ -6,17 +6,19 @@
 
 class Camera {
 public:
-    const char* name;
+    const char *name;
     glm::mat4 transform;
     glm::mat4 projection;
+
     void update(float width, float height);
-    Camera(const char* name);
+
+    explicit Camera(const char *name);
+
 private:
     glm::vec3 pos = glm::vec3();
     glm::vec3 lookPos = glm::vec3();
     float fov = 70.f;
     bool ortho = false;
 };
-
 
 #endif //GLTFVIEWER_CAMERA_H
