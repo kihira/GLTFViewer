@@ -2,12 +2,15 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glad/glad.h>
 #include "gltfloader.h"
 #include "camera.h"
 #include "node.h"
 #include "scene.h"
 
 nlohmann::json jsonData;
+std::vector<unsigned char> binData;
+std::map<int, gltfloader::BufferView> bufferViewCache;
 
 void gltfloader::Load(std::string filePath) {
     if (!filePath.compare(filePath.length() - 4, 3, "glb")) {
@@ -79,7 +82,7 @@ void gltfloader::Load(std::string filePath) {
         }
 
         std::cout << "Reading binary chunk of length " << chunkLength << std::endl;
-        std::vector<unsigned char> binData(chunkLength);
+        binData = std::vector<unsigned char>(chunkLength);
         file.read(reinterpret_cast<char *>(&binData[0]), chunkLength);
     }
 
@@ -108,7 +111,13 @@ void gltfloader::Load(std::string filePath) {
 
 Node *gltfloader::LoadNode(int id) {
     nlohmann::json nodeData = jsonData["nodes"][id];
-    Node *node = new Node();
+    auto *node = new Node();
+
+    if (nodeData.find("children") != nodeData.end()) {
+        for (auto &i : nodeData["children"]) {
+            node->children.push_back(LoadNode(i));
+        }
+    }
 
     if (nodeData.find("matrix") != nodeData.end()) {
         // todo load matrix data
@@ -140,7 +149,7 @@ Node *gltfloader::LoadNode(int id) {
 }
 
 
-Camera* gltfloader::LoadCamera(int id) {
+Camera *gltfloader::LoadCamera(int id) {
     nlohmann::json cameraData = jsonData["cameras"][id];
 
     if (cameraData["type"] == "perspective") {
@@ -153,8 +162,7 @@ Camera* gltfloader::LoadCamera(int id) {
         }
 
         return camera;
-    }
-    else {
+    } else {
         OrthographicCamera *camera = new OrthographicCamera(cameraData["name"]);
         camera->xMag = cameraData["xmag"];
         camera->yMag = cameraData["ymag"];
@@ -163,4 +171,86 @@ Camera* gltfloader::LoadCamera(int id) {
 
         return camera;
     }
+}
+
+Mesh *gltfloader::LoadMesh(int id) {
+    nlohmann::json meshData = jsonData["meshes"][id];
+    auto *mesh = new Mesh();
+
+    for (auto &primitiveData: meshData["primitives"]) {
+        nlohmann::json attributes = primitiveData["attributes"];
+        Primitive *primitive = new Primitive(primitiveData["mode"]);
+
+        glGenVertexArrays(1, &primitive->vao);
+        glBindVertexArray(primitive->vao);
+
+        // Load attributes data
+        if (attributes.find("POSITION") != attributes.end()) {
+            Accessor accessor = LoadAccessor(attributes["POSITION"]);
+            primitive->vertices = accessor.count;
+            BindPointer(accessor, 0, 3);
+        }
+
+        if (attributes.find("NORMAL") != attributes.end()) {
+            BindPointer(LoadAccessor(attributes["NORMAL"]), 1, 3);
+        } else {
+            // todo generate normals
+        }
+
+        if (attributes.find("TANGENT") != attributes.end()) {
+            BindPointer(LoadAccessor(attributes["TANGENT"]), 2, 3);
+        } else {
+            // todo generate tangents
+        }
+
+        if (attributes.find("TEXCOORD_0") != attributes.end()) {
+            BindPointer(LoadAccessor(attributes["TEXCOORD_0"]), 3, 2);
+        }
+
+        if (attributes.find("TEXCOORD_1") != attributes.end()) {
+            BindPointer(LoadAccessor(attributes["TEXCOORD_1"]), 4, 2);
+        }
+
+        // Load indices data (if exists)
+        if (primitiveData.find("indices") != primitiveData.end()) {
+            primitive->hasIndicies = true;
+            GLuint indiciesVbo;
+            glGenBuffers(1, &indiciesVbo);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indiciesVbo);
+            // todo
+        }
+
+        mesh->primitives.push_back(primitive);
+    }
+}
+
+void gltfloader::BindPointer(Accessor accessor, GLuint index, GLuint size) {
+    glBindBuffer(GL_ARRAY_BUFFER, accessor.bufferView.vbo);
+    glVertexAttribPointer(index, size, accessor.componentType, GL_FALSE, accessor.bufferView.byteStride,
+                          reinterpret_cast<const void *>(accessor.byteOffset));
+}
+
+gltfloader::Accessor gltfloader::LoadAccessor(int id) {
+    nlohmann::json accessorData = jsonData["accessors"][id];
+
+    gltfloader::Accessor accessor;
+    accessor.bufferView = LoadBufferView(accessorData["bufferView"]) + accessorData["byteOffset"];
+    accessor.componentType = accessorData["componentType"];
+    accessor.count = accessorData["count"];
+    accessor.type = accessorData["type"];
+
+    return accessor;
+}
+
+gltfloader::BufferView gltfloader::LoadBufferView(int id) {
+    nlohmann::json bfData = jsonData["bufferViews"][id];
+    GLuint vbo;
+
+    // todo should we generate VBO here? Might cause issues when loading for indices as bufferView.target might not be defined
+    // maybe move to a bind function on the struct
+    glGenBuffers(1, &vbo);
+    glBindBuffer(vbo, GL_ARRAY_BUFFER);
+    glBufferData(GL_ARRAY_BUFFER, bfData["byteLength"], &binData[bfData["byteOffset"]], GL_STATIC_DRAW);
+
+    return gltfloader::BufferView{vbo, bfData["byteLength"], bfData["byteStride"]};
 }
