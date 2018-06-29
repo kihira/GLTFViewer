@@ -65,7 +65,7 @@ int main() {
     ImGuiIO &io = ImGui::GetIO();
 
     // Init camera
-    camera = new Camera("Default");
+    camera = new PerspectiveCamera("Default");
 
     gltfloader::Load("BoxTextured.glb");
 

@@ -3,10 +3,11 @@
 
 
 #include <glm/mat4x4.hpp>
+#include <string>
 
 class Camera {
 public:
-    const char *name;
+    std::string name;
     glm::mat4 projection;
     float zFar;
     float zNear;
@@ -14,10 +15,7 @@ public:
     virtual void update(float width, float height) = 0;
 
 protected:
-    explicit Camera(const char *name);
-
-private:
-    virtual void gui() = 0;
+    explicit Camera(std::string name);
 };
 
 class OrthographicCamera : public Camera {
@@ -25,7 +23,7 @@ public:
     float xMag;
     float yMag;
 
-    explicit OrthographicCamera(const char *name);
+    explicit OrthographicCamera(std::string name);
 
 private:
     void update(float width, float height) override;
@@ -36,7 +34,7 @@ public:
     float aspectRatio;
     float fov;
 
-    explicit PerspectiveCamera(const char *name);
+    explicit PerspectiveCamera(std::string name);
 
 private:
     void update(float width, float height) override;

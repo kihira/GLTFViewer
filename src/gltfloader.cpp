@@ -100,7 +100,8 @@ void gltfloader::Load(std::string filePath) {
     // Load scenes
     if (jsonData.find("scenes") != jsonData.end()) {
         for (auto &elem: jsonData["scenes"]) {
-            Scene *scene = new Scene(elem.find("name") != elem.end() ? elem["name"] : "Scene");
+            std::string name = elem.find("name") != elem.end() ? elem["name"] : "Scene";
+            Scene *scene = new Scene(&name[0]);
             if (elem.find("nodes") == elem.end()) continue;
             for (int nodeId : elem["nodes"]) {
                 scene->nodes.push_back(LoadNode(nodeId));
@@ -153,7 +154,8 @@ Camera *gltfloader::LoadCamera(int id) {
     nlohmann::json cameraData = jsonData["cameras"][id];
 
     if (cameraData["type"] == "perspective") {
-        PerspectiveCamera *camera = new PerspectiveCamera(cameraData["name"]);
+        std::string name = cameraData.find("name") != cameraData.end() ? cameraData["name"] : "Perspective Camera";
+        PerspectiveCamera *camera = new PerspectiveCamera(name);
         camera->aspectRatio = cameraData["aspectRatio"];
         camera->fov = cameraData["yfov"];
         camera->zNear = cameraData["znear"];
@@ -163,7 +165,8 @@ Camera *gltfloader::LoadCamera(int id) {
 
         return camera;
     } else {
-        OrthographicCamera *camera = new OrthographicCamera(cameraData["name"]);
+        std::string name = cameraData.find("name") != cameraData.end() ? cameraData["name"] : "Ortho Camera";
+        OrthographicCamera *camera = new OrthographicCamera(name);
         camera->xMag = cameraData["xmag"];
         camera->yMag = cameraData["ymag"];
         camera->zNear = cameraData["znear"];
@@ -179,7 +182,7 @@ Mesh *gltfloader::LoadMesh(int id) {
 
     for (auto &primitiveData: meshData["primitives"]) {
         nlohmann::json attributes = primitiveData["attributes"];
-        Primitive *primitive = new Primitive(primitiveData["mode"]);
+        auto *primitive = new Primitive((GLenum) primitiveData["mode"]);
 
         glGenVertexArrays(1, &primitive->vao);
         glBindVertexArray(primitive->vao);
@@ -222,6 +225,8 @@ Mesh *gltfloader::LoadMesh(int id) {
 
         mesh->primitives.push_back(primitive);
     }
+
+    return mesh;
 }
 
 void gltfloader::BindPointer(Accessor accessor, GLuint index, GLuint size) {
@@ -234,7 +239,8 @@ gltfloader::Accessor gltfloader::LoadAccessor(int id) {
     nlohmann::json accessorData = jsonData["accessors"][id];
 
     gltfloader::Accessor accessor;
-    accessor.bufferView = LoadBufferView(accessorData["bufferView"]) + accessorData["byteOffset"];
+    accessor.bufferView = LoadBufferView(accessorData["bufferView"]);
+    accessor.byteOffset = accessorData["byteOffset"];
     accessor.componentType = accessorData["componentType"];
     accessor.count = accessorData["count"];
     accessor.type = accessorData["type"];
@@ -252,5 +258,10 @@ gltfloader::BufferView gltfloader::LoadBufferView(int id) {
     glBindBuffer(vbo, GL_ARRAY_BUFFER);
     glBufferData(GL_ARRAY_BUFFER, bfData["byteLength"], &binData[bfData["byteOffset"]], GL_STATIC_DRAW);
 
-    return gltfloader::BufferView{vbo, bfData["byteLength"], bfData["byteStride"]};
+    gltfloader::BufferView bufferView;
+    bufferView.vbo = vbo;
+    bufferView.byteLength = bfData["byteLength"];
+    bufferView.byteStride = bfData["byteStride"];
+
+    return bufferView;
 }

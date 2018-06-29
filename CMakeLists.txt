@@ -7,7 +7,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 if (VCPKG_TOOLCHAIN OR NOT WIN32)
     option(USE_GLM_PACKAGE "Use find_package for GLM" ON)
     option(USE_GLFW_PACKAGE "Use find_package for GLFW" ON)
-    option(USE_JSON_PACKAGE "Use find_package for JSON for Modern C++" ON)
 endif ()
 
 # Load GLM
@@ -29,11 +28,7 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 # Load JSON for Modern C++
-if (USE_JSON_PACKAGE)
-    find_package(nlohmann_json 3.1.2 REQUIRED)
-else ()
-    include_directories(GLTFViewer include)
-endif ()
+include_directories(GLTFViewer include)
 
 # Load GLAD
 include_directories(GLTFViewer glad)

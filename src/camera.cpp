@@ -4,13 +4,13 @@
 #include "camera.h"
 #include "vector.hpp"
 
-Camera::Camera(const char *name) : name(name) {}
+Camera::Camera(std::string name) : name(name) {}
 
 /*
  * Orthographic Camera
  */
 
-OrthographicCamera::OrthographicCamera(const char *name) : Camera(name) {}
+OrthographicCamera::OrthographicCamera(std::string name) : Camera(name) {}
 
 void OrthographicCamera::update(float width, float height) {
     //projection = glm::ortho(0.f, xMag, 0.f, yMag);
@@ -19,10 +19,8 @@ void OrthographicCamera::update(float width, float height) {
     projection[2][2] = 2.f / (zNear / zFar);
     projection[3][2] = (zFar + zNear) / (zNear / zFar);
 
-    Camera::update(width, height);
-
     if (ImGui::Begin("Orthographic Camera")) {
-        ImGui::Text(name);
+        ImGui::Text("%s", &name[0]);
         ImGui::DragFloat("X Mag", &xMag);
         ImGui::DragFloat("Y Mag", &yMag);
         ImGui::End();
@@ -33,20 +31,18 @@ void OrthographicCamera::update(float width, float height) {
  * Perspective Camera
  */
 
-PerspectiveCamera::PerspectiveCamera(const char *name) : Camera(name) {}
+PerspectiveCamera::PerspectiveCamera(std::string name) : Camera(name) {}
 
 void PerspectiveCamera::update(float width, float height) {
     // todo should look into using calculated aspect ratio as option instead of the defined one
-    if (zFar == nullptr) {
+    if (zFar < .1f) {
         projection = glm::infinitePerspective(fov, aspectRatio, zNear);
     } else {
         projection = glm::perspective(fov, aspectRatio, zNear, zFar);
     }
 
-    Camera::update(width, height);
-
     if (ImGui::Begin("Perspective Camera")) {
-        ImGui::Text(name);
+        ImGui::Text("%s", &name[0]);
         ImGui::SliderFloat("FOV", &fov, 30.f, 120.f);
         ImGui::SliderFloat("Aspect Ratio", &aspectRatio, 0.f, 10.f);
         ImGui::DragFloat("Z Near", &zNear, 1.f, .1f, 1000.f);
