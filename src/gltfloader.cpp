@@ -7,12 +7,13 @@
 #include "camera.h"
 #include "node.h"
 #include "scene.h"
+#include "glhelper.hpp"
 
 nlohmann::json jsonData;
 std::vector<unsigned char> binData;
-std::map<int, gltfloader::BufferView> bufferViewCache;
+std::map<int, gltf::BufferView> bufferViewCache;
 
-void gltfloader::Load(std::string filePath) {
+void gltf::Load(std::string filePath) {
     if (!filePath.compare(filePath.length() - 4, 3, "glb")) {
         std::cerr << "Can only load GLB files currently" << std::endl;
         return;
@@ -101,16 +102,19 @@ void gltfloader::Load(std::string filePath) {
     if (jsonData.find("scenes") != jsonData.end()) {
         for (auto &elem: jsonData["scenes"]) {
             std::string name = elem.find("name") != elem.end() ? elem["name"] : "Scene";
-            Scene *scene = new Scene(&name[0]);
+            auto *scene = new Scene(&name[0]);
             if (elem.find("nodes") == elem.end()) continue;
             for (int nodeId : elem["nodes"]) {
                 scene->nodes.push_back(LoadNode(nodeId));
             }
         }
     }
+
+    // Purge cache todo always clear if there is an error
+    bufferViewCache.clear();
 }
 
-Node *gltfloader::LoadNode(int id) {
+Node *gltf::LoadNode(int id) {
     nlohmann::json nodeData = jsonData["nodes"][id];
     auto *node = new Node();
 
@@ -146,11 +150,15 @@ Node *gltfloader::LoadNode(int id) {
         node->camera = LoadCamera(nodeData["camera"]);
     }
 
+    if (nodeData.find("mesh") != nodeData.end()) {
+        node->mesh = LoadMesh(nodeData["mesh"]);
+    }
+
     return node;
 }
 
 
-Camera *gltfloader::LoadCamera(int id) {
+Camera *gltf::LoadCamera(int id) {
     nlohmann::json cameraData = jsonData["cameras"][id];
 
     if (cameraData["type"] == "perspective") {
@@ -176,16 +184,17 @@ Camera *gltfloader::LoadCamera(int id) {
     }
 }
 
-Mesh *gltfloader::LoadMesh(int id) {
+Mesh *gltf::LoadMesh(int id) {
     nlohmann::json meshData = jsonData["meshes"][id];
     auto *mesh = new Mesh();
 
-    for (auto &primitiveData: meshData["primitives"]) {
+    for (auto &primitiveData : meshData["primitives"]) {
         nlohmann::json attributes = primitiveData["attributes"];
         auto *primitive = new Primitive((GLenum) primitiveData["mode"]);
 
         glGenVertexArrays(1, &primitive->vao);
         glBindVertexArray(primitive->vao);
+        glErrorCheck();
 
         // Load attributes data
         if (attributes.find("POSITION") != attributes.end()) {
@@ -215,12 +224,12 @@ Mesh *gltfloader::LoadMesh(int id) {
         }
 
         // Load indices data (if exists)
+        int indicies = primitiveData["indices"];
         if (primitiveData.find("indices") != primitiveData.end()) {
             primitive->hasIndicies = true;
-            GLuint indiciesVbo;
-            glGenBuffers(1, &indiciesVbo);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indiciesVbo);
-            // todo
+            Accessor accessor = LoadAccessor(primitiveData["indices"]);
+            accessor.bufferView.target = GL_ELEMENT_ARRAY_BUFFER;
+            accessor.bufferView.bind();
         }
 
         mesh->primitives.push_back(primitive);
@@ -229,18 +238,19 @@ Mesh *gltfloader::LoadMesh(int id) {
     return mesh;
 }
 
-void gltfloader::BindPointer(Accessor accessor, GLuint index, GLuint size) {
-    glBindBuffer(GL_ARRAY_BUFFER, accessor.bufferView.vbo);
+void gltf::BindPointer(Accessor accessor, GLuint index, GLuint size) {
+    accessor.bufferView.bind();
     glVertexAttribPointer(index, size, accessor.componentType, GL_FALSE, accessor.bufferView.byteStride,
                           reinterpret_cast<const void *>(accessor.byteOffset));
+    glErrorCheck();
 }
 
-gltfloader::Accessor gltfloader::LoadAccessor(int id) {
+gltf::Accessor gltf::LoadAccessor(int id) {
     nlohmann::json accessorData = jsonData["accessors"][id];
 
-    gltfloader::Accessor accessor;
+    gltf::Accessor accessor;
     accessor.bufferView = LoadBufferView(accessorData["bufferView"]);
-    accessor.byteOffset = accessorData["byteOffset"];
+    accessor.byteOffset = accessorData.value("byteOffset", 0);
     accessor.componentType = accessorData["componentType"];
     accessor.count = accessorData["count"];
     accessor.type = accessorData["type"];
@@ -248,20 +258,20 @@ gltfloader::Accessor gltfloader::LoadAccessor(int id) {
     return accessor;
 }
 
-gltfloader::BufferView gltfloader::LoadBufferView(int id) {
+gltf::BufferView gltf::LoadBufferView(int id) {
+    if (bufferViewCache.find(id) != bufferViewCache.end()) {
+        return bufferViewCache[id];
+    }
+
     nlohmann::json bfData = jsonData["bufferViews"][id];
-    GLuint vbo;
 
-    // todo should we generate VBO here? Might cause issues when loading for indices as bufferView.target might not be defined
-    // maybe move to a bind function on the struct
-    glGenBuffers(1, &vbo);
-    glBindBuffer(vbo, GL_ARRAY_BUFFER);
-    glBufferData(GL_ARRAY_BUFFER, bfData["byteLength"], &binData[bfData["byteOffset"]], GL_STATIC_DRAW);
-
-    gltfloader::BufferView bufferView;
-    bufferView.vbo = vbo;
+    gltf::BufferView bufferView;
     bufferView.byteLength = bfData["byteLength"];
-    bufferView.byteStride = bfData["byteStride"];
+    bufferView.byteStride = bfData.value("byteStride", 0);
+    bufferView.data = &binData[bfData.value("byteOffset", 0)];
+    bufferView.target = static_cast<GLuint>(bfData.value("target", GL_ARRAY_BUFFER));
+
+    bufferViewCache[id] = bufferView;
 
     return bufferView;
 }

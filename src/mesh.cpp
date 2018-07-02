@@ -11,6 +11,7 @@ void Primitive::render() {
 Primitive::Primitive(GLenum mode) : mode(mode) {}
 
 Primitive::~Primitive() {
+    glDeleteBuffers(1, &vao);
     // todo delete buffer views
 }
 

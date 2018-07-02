@@ -38,6 +38,6 @@ list(APPEND LIB_SOURCES glad/glad.c)
 include_directories(GLTFViewer imgui)
 list(APPEND LIB_SOURCES imgui/imgui.cpp imgui/imgui_demo.cpp imgui/imgui_draw.cpp imgui/imgui_impl_opengl3.cpp imgui/imgui_impl_glfw.cpp)
 
-add_executable(GLTFViewer ${LIB_SOURCES} src/main.cpp src/camera.cpp src/camera.h src/vector.hpp src/gltfloader.cpp src/gltfloader.h src/scene.cpp src/scene.h src/node.cpp src/node.h src/mesh.cpp src/mesh.h)
+add_executable(GLTFViewer ${LIB_SOURCES} src/main.cpp src/camera.cpp src/camera.h src/vector.hpp src/gltfloader.cpp src/gltfloader.h src/scene.cpp src/scene.h src/node.cpp src/node.h src/mesh.cpp src/mesh.h src/glhelper.hpp)
 
 target_link_libraries(GLTFViewer glfw)

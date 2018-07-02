@@ -6,8 +6,12 @@
 #include <glm/gtc/quaternion.hpp>
 #include <vector>
 #include "camera.h"
+#include "mesh.h"
 
 class Node {
+public:
+    virtual ~Node();
+
 public:
     const char* name;
     glm::vec3 pos = glm::vec3(0, 0, 0);
@@ -16,7 +20,7 @@ public:
     glm::mat4 matrix = glm::mat4();
     std::vector<Node *> children;
     Camera *camera;
-    int mesh;
+    Mesh *mesh;
 };
 
 

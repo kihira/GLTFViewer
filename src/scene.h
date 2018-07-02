@@ -11,6 +11,8 @@ public:
     std::vector<Node *> nodes;
 
     Scene(const char *name);
+
+    virtual ~Scene();
 };
 
 
