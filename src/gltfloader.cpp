@@ -6,14 +6,13 @@
 #include "gltfloader.h"
 #include "camera.h"
 #include "node.h"
-#include "scene.h"
 #include "glhelper.hpp"
 
 nlohmann::json jsonData;
 std::vector<unsigned char> binData;
 std::map<int, gltf::BufferView> bufferViewCache;
 
-void gltf::Load(std::string filePath) {
+void gltf::LoadAsset(std::string filePath) {
     if (!filePath.compare(filePath.length() - 4, 3, "glb")) {
         std::cerr << "Can only load GLB files currently" << std::endl;
         return;
@@ -102,10 +101,11 @@ void gltf::Load(std::string filePath) {
     if (jsonData.find("scenes") != jsonData.end()) {
         for (auto &elem: jsonData["scenes"]) {
             std::string name = elem.find("name") != elem.end() ? elem["name"] : "Scene";
-            auto *scene = new Scene(&name[0]);
+            Scene scene;
+            scene.name = elem.value("name", "Scene");
             if (elem.find("nodes") == elem.end()) continue;
             for (int nodeId : elem["nodes"]) {
-                scene->nodes.push_back(LoadNode(nodeId));
+                scene.nodes.push_back(LoadNode(nodeId));
             }
         }
     }

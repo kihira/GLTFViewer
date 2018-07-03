@@ -36,7 +36,19 @@ namespace gltf {
         std::string type;
     };
 
-    void Load(std::string filePath);
+    struct Scene {
+        const char *name;
+        std::vector<Node *> nodes;
+
+        virtual ~Scene() {
+            for (auto &node: nodes) {
+                delete node;
+            }
+            nodes.clear();
+        };
+    };
+
+    void LoadAsset(std::string filePath);
 
     Node *LoadNode(int id);
 

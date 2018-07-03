@@ -67,7 +67,7 @@ int main() {
     // Init camera
     camera = new PerspectiveCamera("Default");
 
-    gltf::Load("BoxTextured.glb");
+    gltf::LoadAsset("BoxTextured.glb");
 
     // Game loop
     while (!glfwWindowShouldClose(window)) {
