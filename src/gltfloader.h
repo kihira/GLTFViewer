@@ -2,6 +2,7 @@
 #include "node.h"
 #include "mesh.h"
 #include "glhelper.hpp"
+#include "asset.h"
 
 #ifndef GLTFVIEWER_GLFTLOADER_H
 #define GLTFVIEWER_GLFTLOADER_H
@@ -36,26 +37,7 @@ namespace gltf {
         std::string type;
     };
 
-    struct Scene {
-        std::string name;
-        std::vector<Node *> nodes;
-
-        virtual ~Scene() {
-            for (auto &node: nodes) {
-                delete node;
-            }
-            nodes.clear();
-        };
-
-        void render() {
-            for (auto& node: nodes) {
-                node->render();
-            }
-        }
-    };
-
-    // todo return an Asset instead?
-    Scene *LoadAsset(std::string filePath);
+    Asset *LoadAsset(std::string &filePath);
 
     Node *LoadNode(int id);
 

@@ -20,7 +20,7 @@ static void keyCallback(GLFWwindow *window, int key, int scancode, int action, i
 
 int main() {
     Camera *camera;
-    gltf::Scene *scene;
+    Asset *asset;
 
     glfwSetErrorCallback(glfwErrorCallback);
 
@@ -69,7 +69,8 @@ int main() {
     // Init camera
     camera = new PerspectiveCamera("Default");
 
-    scene = gltf::LoadAsset("BoxTextured.glb");
+    std::string filePath = "BoxTextured.glb";
+    asset = gltf::LoadAsset(filePath);
 
     // Game loop
     while (!glfwWindowShouldClose(window)) {
@@ -94,9 +95,9 @@ int main() {
         // Update camera
         camera->update(width, height);
 
-        // Draw scene
-        if (scene != nullptr) {
-            scene->render();
+        // Draw asset
+        if (asset != nullptr) {
+            asset->render();
             glErrorCheck();
         }
 

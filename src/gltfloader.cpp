@@ -7,12 +7,13 @@
 #include "camera.h"
 #include "node.h"
 #include "glhelper.hpp"
+#include "asset.h"
 
 nlohmann::json jsonData;
 std::vector<unsigned char> binData;
 std::map<int, gltf::BufferView> bufferViewCache;
 
-gltf::Scene *gltf::LoadAsset(std::string filePath) {
+Asset *gltf::LoadAsset(std::string &filePath) {
     if (!filePath.compare(filePath.length() - 4, 3, "glb")) {
         std::cerr << "Can only load GLB files currently" << std::endl;
         return nullptr;
@@ -97,26 +98,25 @@ gltf::Scene *gltf::LoadAsset(std::string filePath) {
         std::cerr << "Unable to load asset as it requires extensions not available" << std::endl;
     }
 
+    auto *asset = new Asset(filePath); // todo get just filename
+
     // Load scenes
-    std::vector<Scene *> scenes;
     if (jsonData.find("scenes") != jsonData.end()) {
         for (auto &elem: jsonData["scenes"]) {
-            Scene* scene = new Scene();
-            scenes.push_back(scene);
-            scene->name = elem.value("name", "Scene");
+            Scene *scene = new Scene(elem.value("name", "Scene"));
+            asset->scenes.push_back(scene);
             if (elem.find("nodes") == elem.end()) continue;
             for (int nodeId : elem["nodes"]) {
                 scene->nodes.push_back(LoadNode(nodeId));
             }
         }
     }
-
-    if (jsonData.find("scene") != jsonData.end()) {
-        return scenes[jsonData["scene"]]; // todo clean up first
-    }
+    asset->scene = jsonData.value("scene", 0);
 
     // Purge cache todo always clear if there is an error
     bufferViewCache.clear();
+
+    return asset;
 }
 
 Node *gltf::LoadNode(int id) {

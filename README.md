@@ -3,12 +3,15 @@ A little program to preview GLTF models with a few custom settings
 
 Built with [GLFW3](http://www.glfw.org), [glad](https://github.com/Dav1dde/glad), [GLM](https://glm.g-truc.net), [imgui](https://github.com/ocornut/imgui) and [nholmann/json](https://github.com/nlohmann/json) using [CMake](https://cmake.org/) and C++
 
+## Features
+- Supports loading scenes and cameras
+
 ## Planned Features
 - Load GLTF and GLB files
-- Support scene views and cameras
 - Post procressing shaders
 - Live reloading of assets
 - Multi camera viewports
+- Custom skybox and ILB
 
 ## Build
 GLTF Viewer uses CMake to build, allowing it to be used across multiple systems.
