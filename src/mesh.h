@@ -25,6 +25,8 @@ public:
     std::vector<Primitive *> primitives;
 
     virtual ~Mesh();
+
+    void render();
 };
 
 #endif //GLTFVIEWER_MESH_H

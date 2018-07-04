@@ -11,7 +11,7 @@
 class Node {
 public:
     virtual ~Node();
-
+    void render();
 public:
     const char* name;
     glm::vec3 pos = glm::vec3(0, 0, 0);

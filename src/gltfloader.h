@@ -37,7 +37,7 @@ namespace gltf {
     };
 
     struct Scene {
-        const char *name;
+        std::string name;
         std::vector<Node *> nodes;
 
         virtual ~Scene() {
@@ -46,9 +46,16 @@ namespace gltf {
             }
             nodes.clear();
         };
+
+        void render() {
+            for (auto& node: nodes) {
+                node->render();
+            }
+        }
     };
 
-    void LoadAsset(std::string filePath);
+    // todo return an Asset instead?
+    Scene *LoadAsset(std::string filePath);
 
     Node *LoadNode(int id);
 

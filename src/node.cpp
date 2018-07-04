@@ -8,3 +8,9 @@ Node::~Node() {
     }
     children.clear();
 }
+
+void Node::render() {
+    if (mesh != nullptr) {
+        mesh->render();
+    }
+}

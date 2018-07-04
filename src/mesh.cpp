@@ -21,3 +21,9 @@ Mesh::~Mesh() {
     }
     primitives.clear();
 }
+
+void Mesh::render() {
+    for (auto& primitive : primitives) {
+        primitive->render();
+    }
+}

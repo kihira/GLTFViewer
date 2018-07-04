@@ -12,10 +12,10 @@ nlohmann::json jsonData;
 std::vector<unsigned char> binData;
 std::map<int, gltf::BufferView> bufferViewCache;
 
-void gltf::LoadAsset(std::string filePath) {
+gltf::Scene *gltf::LoadAsset(std::string filePath) {
     if (!filePath.compare(filePath.length() - 4, 3, "glb")) {
         std::cerr << "Can only load GLB files currently" << std::endl;
-        return;
+        return nullptr;
     }
 
     // Open file and get length
@@ -23,7 +23,7 @@ void gltf::LoadAsset(std::string filePath) {
     file.open(filePath, std::ios::in | std::ios::binary | std::ios::ate);
     if (!file.is_open()) {
         std::cerr << "Failed to open file" << std::endl;
-        return;
+        return nullptr;
     }
     std::streampos fileLength = file.tellg();
     file.seekg(0, std::ios::beg);
@@ -36,15 +36,15 @@ void gltf::LoadAsset(std::string filePath) {
 
     if (fileLength != length) {
         std::cerr << "Expected file of length " << length << " but got " << fileLength << std::endl;
-        return;
+        return nullptr;
     }
     if (magic != 0x46546C67) {
         std::cerr << "Invalid file type, expected GLB file but got something else" << std::endl;
-        return;
+        return nullptr;
     }
     if (version != 2) {
         std::cerr << "Only Binary glTF version 2 is currently supported" << std::endl;
-        return;
+        return nullptr;
     }
     std::cout << "Loading GLB file of size " << length << std::endl;
 
@@ -55,7 +55,7 @@ void gltf::LoadAsset(std::string filePath) {
 
     if (chunkType != 0x4E4F534A) {
         std::cerr << "Expected JSON chunk but didn't get it" << std::endl;
-        return;
+        return nullptr;
     }
 
     std::cout << "Reading JSON chunk of length " << chunkLength << std::endl;
@@ -68,7 +68,7 @@ void gltf::LoadAsset(std::string filePath) {
         jsonData = nlohmann::json::parse(data);
     } catch (const std::exception &e) {
         std::cerr << "Failed to parse JSON data: " << e.what() << std::endl;
-        return;
+        return nullptr;
     }
 
     // Read binary chunk (if exists)
@@ -78,7 +78,7 @@ void gltf::LoadAsset(std::string filePath) {
 
         if (chunkType != 0x004E4942) {
             std::cerr << "Expected binary chunk but didn't get it" << std::endl;
-            return;
+            return nullptr;
         }
 
         std::cout << "Reading binary chunk of length " << chunkLength << std::endl;
@@ -91,23 +91,28 @@ void gltf::LoadAsset(std::string filePath) {
     // Validate asset
     if (jsonData["asset"] == nullptr || jsonData["asset"]["version"] != "2.0") {
         std::cerr << "Only glTF version 2 files are supported" << std::endl;
-        return;
+        return nullptr;
     }
     if (jsonData.find("extensionsRequired") != jsonData.end()) {
         std::cerr << "Unable to load asset as it requires extensions not available" << std::endl;
     }
 
     // Load scenes
+    std::vector<Scene *> scenes;
     if (jsonData.find("scenes") != jsonData.end()) {
         for (auto &elem: jsonData["scenes"]) {
-            std::string name = elem.find("name") != elem.end() ? elem["name"] : "Scene";
-            Scene scene;
-            scene.name = elem.value("name", "Scene");
+            Scene* scene = new Scene();
+            scenes.push_back(scene);
+            scene->name = elem.value("name", "Scene");
             if (elem.find("nodes") == elem.end()) continue;
             for (int nodeId : elem["nodes"]) {
-                scene.nodes.push_back(LoadNode(nodeId));
+                scene->nodes.push_back(LoadNode(nodeId));
             }
         }
+    }
+
+    if (jsonData.find("scene") != jsonData.end()) {
+        return scenes[jsonData["scene"]]; // todo clean up first
     }
 
     // Purge cache todo always clear if there is an error
@@ -224,7 +229,6 @@ Mesh *gltf::LoadMesh(int id) {
         }
 
         // Load indices data (if exists)
-        int indicies = primitiveData["indices"];
         if (primitiveData.find("indices") != primitiveData.end()) {
             primitive->hasIndicies = true;
             Accessor accessor = LoadAccessor(primitiveData["indices"]);
