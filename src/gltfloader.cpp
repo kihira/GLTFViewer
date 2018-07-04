@@ -130,7 +130,8 @@ Node *gltf::LoadNode(int id) {
     }
 
     if (nodeData.find("matrix") != nodeData.end()) {
-        // todo load matrix data
+        std::vector<float> matrix = nodeData["matrix"];
+        node->matrix = glm::make_mat4(&matrix[0]);
     } else {
         if (nodeData.find("translation") != nodeData.end()) {
             // todo look into casting instead?
