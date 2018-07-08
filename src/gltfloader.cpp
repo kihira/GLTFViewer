@@ -246,6 +246,7 @@ Mesh *gltf::LoadMesh(int id) {
 
 void gltf::BindPointer(Accessor accessor, GLuint index, GLuint size) {
     accessor.bufferView.bind();
+    glEnableVertexAttribArray(index);
     glVertexAttribPointer(index, size, accessor.componentType, GL_FALSE, accessor.bufferView.byteStride,
                           reinterpret_cast<const void *>(accessor.byteOffset));
     glErrorCheck();

@@ -6,8 +6,35 @@
 #include <iostream>
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "camera.h"
 #include "gltfloader.h"
+#include "vector.hpp"
+
+static const char* vertShader =
+        "#version 330\n"
+        "uniform mat4 mViewProj;\n"
+        "uniform mat4 mModel;\n"
+        "layout (location = 0) in vec3 aPos;\n"
+        "layout (location = 1) in vec3 aNormal;\n"
+        "layout (location = 2) in vec3 aTangent;\n"
+        "layout (location = 3) in vec2 aTexCoord;\n"
+        "layout (location = 4) in vec3 vCol;\n"
+        "out vec3 color;\n"
+        "void main()\n"
+        "{\n"
+        "    gl_Position = mViewProj * mModel * vec4(aPos, 1.0);\n"
+        "    color = vCol;\n"
+        "}\n";
+
+static const char* fragShader =
+        "#version 330\n"
+        "out vec4 FragColor;\n"
+        "in vec3 color;\n"
+        "void main()\n"
+        "{\n"
+        "    FragColor = vec4(color, 1.0);\n"
+        "}\n";
 
 static void glfwErrorCallback(int error, const char *desc) {
     std::cerr << "GLFW Error " << error << ": " << desc << std::endl;
@@ -16,6 +43,23 @@ static void glfwErrorCallback(int error, const char *desc) {
 static void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GLFW_TRUE);
+}
+
+static GLuint compileShader(const char* source, GLuint type) {
+    GLuint shader = glCreateShader(type);
+    glShaderSource(shader, 1, &source, nullptr);
+    glCompileShader(shader);
+
+    GLint err;
+    GLchar errData[512];
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &err);
+    if (!err) {
+        glGetShaderInfoLog(shader, 512, nullptr, errData);
+        std::cerr << "Failed to compile shader " << ": " << errData << std::endl;
+    }
+    glErrorCheck();
+
+    return shader;
 }
 
 int main() {
@@ -57,6 +101,7 @@ int main() {
 
     // Set OpenGL stuff
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glfwSwapInterval(1);
 
     // Init imgui
     IMGUI_CHECKVERSION();
@@ -69,15 +114,26 @@ int main() {
     // Init camera
     camera = new PerspectiveCamera("Default");
 
+    // Load test asset
     std::string filePath = "BoxTextured.glb";
     asset = gltf::LoadAsset(filePath);
+
+    // Load and build shaders
+    GLuint vert, frag, program;
+    vert = compileShader(vertShader, GL_VERTEX_SHADER);
+    frag = compileShader(fragShader, GL_FRAGMENT_SHADER);
+
+    program = glCreateProgram();
+    glAttachShader(program, vert);
+    glAttachShader(program, frag);
+    glLinkProgram(program);
+    glErrorCheck();
 
     // Game loop
     while (!glfwWindowShouldClose(window)) {
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height);
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // NOLINT
 
         // Start imgui
@@ -92,8 +148,15 @@ int main() {
         }
         ImGui::EndMainMenuBar();
 
+        glUseProgram(program);
+        glErrorCheck();
+
         // Update camera
         camera->update(width, height);
+        glm::mat4 vp = glm::lookAt(glm::vec3(10, 10, 0), glm::vec3(0, 0, 0), vector::UP);
+        vp *= camera->projection;
+        glUniformMatrix4fv(glGetUniformLocation(program, "mViewProjection"), 1, GL_FALSE, glm::value_ptr(vp));
+        glErrorCheck();
 
         // Draw asset
         if (asset != nullptr) {

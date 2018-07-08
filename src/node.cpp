@@ -1,5 +1,7 @@
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "node.h"
+#include "glhelper.hpp"
 
 Node::~Node() {
     delete camera;
@@ -16,6 +18,10 @@ void Node::render() {
         matrix *= glm::mat4_cast(rot);
         matrix = glm::scale(matrix, scale);
     }
+
+    // todo don't use hard coded program ID and cache location
+    glUniformMatrix4fv(glGetUniformLocation(3, "mModel"), 1, GL_FALSE, glm::value_ptr(matrix));
+    glErrorCheck();
 
     if (mesh != nullptr) {
         mesh->render();
