@@ -24,7 +24,7 @@ namespace gltf {
                 glErrorCheck();
                 return;
             }
-            glBindBuffer(vbo, target);
+            glBindBuffer(target, vbo);
             glErrorCheck();
         }
     };
