@@ -197,7 +197,7 @@ Mesh *gltf::LoadMesh(int id) {
 
     for (auto &primitiveData : meshData["primitives"]) {
         nlohmann::json attributes = primitiveData["attributes"];
-        auto *primitive = new Primitive((GLenum) primitiveData["mode"]);
+        auto *primitive = new Primitive((GLenum) primitiveData.value("mode", GL_TRIANGLES));
 
         glGenVertexArrays(1, &primitive->vao);
         glBindVertexArray(primitive->vao);
@@ -211,7 +211,7 @@ Mesh *gltf::LoadMesh(int id) {
         }
 
         if (attributes.find("NORMAL") != attributes.end()) {
-            BindPointer(LoadAccessor(attributes["NORMAL"]), 1, 3);
+            // BindPointer(LoadAccessor(attributes["NORMAL"]), 1, 3);
         } else {
             // todo generate normals
         }
@@ -232,10 +232,10 @@ Mesh *gltf::LoadMesh(int id) {
 
         // Load indices data (if exists)
         if (primitiveData.find("indices") != primitiveData.end()) {
-            primitive->hasIndicies = true;
             Accessor accessor = LoadAccessor(primitiveData["indices"]);
             accessor.bufferView->target = GL_ELEMENT_ARRAY_BUFFER;
             accessor.bufferView->bind();
+            primitive->indiciesComponentType = accessor.componentType;
         }
 
         mesh->primitives.push_back(primitive);

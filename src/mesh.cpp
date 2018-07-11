@@ -3,8 +3,8 @@
 
 void Primitive::render() {
     glBindVertexArray(vao);
-    if (hasIndicies) {
-        glDrawElements(mode, vertices, GL_UNSIGNED_INT, nullptr);// todo could be short or byte as well
+    if (indiciesComponentType != 0) {
+        glDrawElements(mode, vertices, indiciesComponentType, nullptr);
     } else {
         glDrawArrays(mode, 0, vertices);
     }

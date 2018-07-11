@@ -10,7 +10,7 @@ public:
     const GLenum mode;
     GLuint vao;
     int vertices;
-    bool hasIndicies;
+    GLenum indiciesComponentType; // This is a non zero value if we are using an indicies buffer
 
     explicit Primitive(GLenum mode);
 
