@@ -1,11 +1,14 @@
 #include "mesh.h"
+#include "glhelper.hpp"
 
 void Primitive::render() {
+    glBindVertexArray(vao);
     if (hasIndicies) {
         glDrawElements(mode, vertices, GL_UNSIGNED_INT, nullptr);// todo could be short or byte as well
     } else {
         glDrawArrays(mode, 0, vertices);
     }
+    glErrorCheck();
 }
 
 Primitive::Primitive(GLenum mode) : mode(mode) {}

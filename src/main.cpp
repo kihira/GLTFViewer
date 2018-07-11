@@ -13,28 +13,22 @@
 
 static const char* vertShader =
         "#version 330\n"
-        "uniform mat4 mViewProj;\n"
-        "uniform mat4 mModel;\n"
         "layout (location = 0) in vec3 aPos;\n"
-        "layout (location = 1) in vec3 aNormal;\n"
-        "layout (location = 2) in vec3 aTangent;\n"
-        "layout (location = 3) in vec2 aTexCoord;\n"
-        "layout (location = 4) in vec3 vCol;\n"
-        "out vec3 color;\n"
+        "uniform mat4 model;\n"
+        "uniform mat4 view;\n"
+        "uniform mat4 proj;\n"
         "void main()\n"
         "{\n"
-        "    gl_Position = mViewProj * mModel * vec4(aPos, 1.0);\n"
-        "    color = vCol;\n"
-        "}\n";
+        "    gl_Position = proj * view * model * vec4(aPos, 1.0);\n"
+        "}\n\0";
 
 static const char* fragShader =
         "#version 330\n"
         "out vec4 FragColor;\n"
-        "in vec3 color;\n"
         "void main()\n"
         "{\n"
-        "    FragColor = vec4(color, 1.0);\n"
-        "}\n";
+        "    FragColor = vec4(1.f, 0.5f, 0.5f, 1.0f);\n"
+        "}\n\0";
 
 static void glfwErrorCallback(int error, const char *desc) {
     std::cerr << "GLFW Error " << error << ": " << desc << std::endl;
@@ -100,6 +94,7 @@ int main() {
     std::cout << "OpenGL " << GLVersion.major << "." << GLVersion.minor << std::endl;
 
     // Set OpenGL stuff
+    glEnable(GL_DEPTH_TEST);
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glfwSwapInterval(1);
 
@@ -115,7 +110,7 @@ int main() {
     camera = new PerspectiveCamera("Default");
 
     // Load test asset
-    std::string filePath = "BoxTextured.glb";
+    std::string filePath = "Box.glb";
     asset = gltf::LoadAsset(filePath);
 
     // Load and build shaders
@@ -127,6 +122,10 @@ int main() {
     glAttachShader(program, vert);
     glAttachShader(program, frag);
     glLinkProgram(program);
+
+    glDeleteShader(vert);
+    glDeleteShader(frag);
+
     glErrorCheck();
 
     // Game loop
@@ -148,14 +147,19 @@ int main() {
         }
         ImGui::EndMainMenuBar();
 
+        // Update camera
+        camera->update(width, height);
+
         glUseProgram(program);
         glErrorCheck();
 
-        // Update camera
-        camera->update(width, height);
-        glm::mat4 vp = glm::lookAt(glm::vec3(10, 10, 0), glm::vec3(0, 0, 0), vector::UP);
-        vp *= camera->projection;
-        glUniformMatrix4fv(glGetUniformLocation(program, "mViewProjection"), 1, GL_FALSE, glm::value_ptr(vp));
+        glm::mat4 view = glm::lookAt(glm::vec3(3.f, 3.f, 3.f), glm::vec3(0, 0, 0), vector::UP);
+        //glm::mat4 view(1.f);
+        //view = glm::translate(view, glm::vec3(0.0f, 0.0f, -1.0f));
+        glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_FALSE, glm::value_ptr(camera->projection));
+        glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+        glm::mat4 model(1.f);
+        glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_FALSE, glm::value_ptr(model));
         glErrorCheck();
 
         // Draw asset
@@ -165,7 +169,7 @@ int main() {
         }
 
         ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        // ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
         glfwPollEvents();

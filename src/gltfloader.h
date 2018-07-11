@@ -11,7 +11,7 @@
 namespace gltf {
     struct BufferView {
         GLuint vbo = 0;
-        unsigned char*data = nullptr; // Pointer to the start of the data
+        unsigned char *data = nullptr; // Pointer to the start of the data
         int byteLength = 0;
         int byteStride = 0;
         GLuint target = GL_ARRAY_BUFFER;
@@ -30,7 +30,7 @@ namespace gltf {
     };
 
     struct Accessor {
-        BufferView bufferView;
+        BufferView *bufferView;
         int byteOffset = 0;
         GLenum componentType;
         int count;
@@ -47,7 +47,7 @@ namespace gltf {
 
     Accessor LoadAccessor(int id);
 
-    BufferView LoadBufferView(int id);
+    BufferView *LoadBufferView(int id);
 
     void BindPointer(Accessor accessor, GLuint index, GLuint size);
 };

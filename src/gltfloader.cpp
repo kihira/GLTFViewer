@@ -11,7 +11,7 @@
 
 nlohmann::json jsonData;
 std::vector<unsigned char> binData;
-std::map<int, gltf::BufferView> bufferViewCache;
+std::map<int, gltf::BufferView *> bufferViewCache;
 
 Asset *gltf::LoadAsset(std::string &filePath) {
     if (!filePath.compare(filePath.length() - 4, 3, "glb")) {
@@ -234,8 +234,8 @@ Mesh *gltf::LoadMesh(int id) {
         if (primitiveData.find("indices") != primitiveData.end()) {
             primitive->hasIndicies = true;
             Accessor accessor = LoadAccessor(primitiveData["indices"]);
-            accessor.bufferView.target = GL_ELEMENT_ARRAY_BUFFER;
-            accessor.bufferView.bind();
+            accessor.bufferView->target = GL_ELEMENT_ARRAY_BUFFER;
+            accessor.bufferView->bind();
         }
 
         mesh->primitives.push_back(primitive);
@@ -245,9 +245,9 @@ Mesh *gltf::LoadMesh(int id) {
 }
 
 void gltf::BindPointer(Accessor accessor, GLuint index, GLuint size) {
-    accessor.bufferView.bind();
+    accessor.bufferView->bind();
     glEnableVertexAttribArray(index);
-    glVertexAttribPointer(index, size, accessor.componentType, GL_FALSE, accessor.bufferView.byteStride,
+    glVertexAttribPointer(index, size, accessor.componentType, GL_FALSE, accessor.bufferView->byteStride,
                           reinterpret_cast<const void *>(accessor.byteOffset));
     glErrorCheck();
 }
@@ -265,18 +265,18 @@ gltf::Accessor gltf::LoadAccessor(int id) {
     return accessor;
 }
 
-gltf::BufferView gltf::LoadBufferView(int id) {
+gltf::BufferView *gltf::LoadBufferView(int id) {
     if (bufferViewCache.find(id) != bufferViewCache.end()) {
         return bufferViewCache[id];
     }
 
     nlohmann::json bfData = jsonData["bufferViews"][id];
 
-    gltf::BufferView bufferView;
-    bufferView.byteLength = bfData["byteLength"];
-    bufferView.byteStride = bfData.value("byteStride", 0);
-    bufferView.data = &binData[bfData.value("byteOffset", 0)];
-    bufferView.target = static_cast<GLuint>(bfData.value("target", GL_ARRAY_BUFFER));
+    auto *bufferView = new BufferView();
+    bufferView->byteLength = bfData["byteLength"];
+    bufferView->byteStride = bfData.value("byteStride", 0);
+    bufferView->data = &binData[bfData.value("byteOffset", 0)];
+    bufferView->target = static_cast<GLuint>(bfData.value("target", GL_ARRAY_BUFFER));
 
     bufferViewCache[id] = bufferView;
 

@@ -4,7 +4,10 @@
 #include "camera.h"
 #include "vector.hpp"
 
-Camera::Camera(std::string name) : name(name) {}
+Camera::Camera(std::string name) : name(name) {
+    zNear = .1f;
+    zFar = 100.f;
+}
 
 /*
  * Orthographic Camera
@@ -31,7 +34,10 @@ void OrthographicCamera::update(float width, float height) {
  * Perspective Camera
  */
 
-PerspectiveCamera::PerspectiveCamera(std::string name) : Camera(name) {}
+PerspectiveCamera::PerspectiveCamera(std::string name) : Camera(name) {
+    aspectRatio = 16.f/9.f;
+    fov = 70.f;
+}
 
 void PerspectiveCamera::update(float width, float height) {
     // todo should look into using calculated aspect ratio as option instead of the defined one

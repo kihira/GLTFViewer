@@ -6,7 +6,7 @@
 Node::~Node() {
     delete camera;
     delete mesh;
-    for (auto& child: children) {
+    for (auto &child: children) {
         delete child;
     }
     children.clear();
@@ -20,8 +20,12 @@ void Node::render() {
     }
 
     // todo don't use hard coded program ID and cache location
-    glUniformMatrix4fv(glGetUniformLocation(3, "mModel"), 1, GL_FALSE, glm::value_ptr(matrix));
+    // glUniformMatrix4fv(glGetUniformLocation(3, "model"), 1, GL_FALSE, glm::value_ptr(matrix));
     glErrorCheck();
+
+    for (auto &child : children) {
+        child->render();
+    }
 
     if (mesh != nullptr) {
         mesh->render();
