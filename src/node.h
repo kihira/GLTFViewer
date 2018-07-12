@@ -11,9 +11,11 @@
 class Node {
 public:
     virtual ~Node();
-    void render();
+
+    void render(glm::mat4 &transform);
+
 public:
-    const char* name;
+    const char *name;
     glm::vec3 pos = glm::vec3(0, 0, 0);
     glm::quat rot = glm::quat(0, 0, 0, 1);
     glm::vec3 scale = glm::vec3(1, 1, 1);

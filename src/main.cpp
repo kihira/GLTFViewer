@@ -12,6 +12,7 @@
 #include "vector.hpp"
 
 Camera *camera;
+GLuint program;
 
 static const char *vertShader =
         "#version 330\n"
@@ -39,6 +40,11 @@ static void glfwErrorCallback(int error, const char *desc) {
 static void glfwFramebufferSizeCallback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
     camera->update(width, height);
+    glErrorCheck();
+
+    glUseProgram(program);
+    glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_FALSE, glm::value_ptr(camera->projection));
+    glErrorCheck();
 }
 
 static void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
@@ -121,7 +127,7 @@ int main() {
     asset = gltf::LoadAsset(filePath);
 
     // Load and build shaders
-    GLuint vert, frag, program;
+    GLuint vert, frag;
     vert = compileShader(vertShader, GL_VERTEX_SHADER);
     frag = compileShader(fragShader, GL_FRAGMENT_SHADER);
 
@@ -135,6 +141,9 @@ int main() {
     glErrorCheck();
 
     glfwSetWindowSize(window, 1280, 720); // Set window size to trigger framebuffersize callback
+
+    glm::vec3 eyePos(3.f, 3.f, 3.f);
+    glm::vec3 targetPos(0.f, 0.f, 0.f);
 
     // Render loop
     while (!glfwWindowShouldClose(window)) {
@@ -155,11 +164,14 @@ int main() {
         glUseProgram(program);
         glErrorCheck();
 
-        glm::mat4 view = glm::lookAt(glm::vec3(3.f, 3.f, 3.f), glm::vec3(0, 0, 0), vector::UP);
-        glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_FALSE, glm::value_ptr(camera->projection));
+        if (ImGui::Begin("View")) {
+            ImGui::InputFloat3("Eye", reinterpret_cast<float *>(&eyePos));
+            ImGui::InputFloat3("Target", reinterpret_cast<float *>(&targetPos));
+            ImGui::End();
+        }
+
+        glm::mat4 view = glm::lookAt(eyePos, targetPos, vector::UP);
         glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-        glm::mat4 model(1.f);
-        glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_FALSE, glm::value_ptr(model));
         glErrorCheck();
 
         // Draw asset

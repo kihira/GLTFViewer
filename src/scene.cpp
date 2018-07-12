@@ -2,7 +2,8 @@
 
 void Scene::render() {
     for (auto& node: nodes) {
-        node->render();
+        glm::mat4 transform(1.f);
+        node->render(transform);
     }
 }
 
