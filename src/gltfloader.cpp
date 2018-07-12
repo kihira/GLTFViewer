@@ -209,25 +209,30 @@ Mesh *gltf::LoadMesh(int id) {
             primitive->vertices = accessor.count;
             BindPointer(accessor, 0, 3);
         }
-
         if (attributes.find("NORMAL") != attributes.end()) {
-            // BindPointer(LoadAccessor(attributes["NORMAL"]), 1, 3);
+             BindPointer(LoadAccessor(attributes["NORMAL"]), 1, 3);
         } else {
             // todo generate normals
         }
-
         if (attributes.find("TANGENT") != attributes.end()) {
             BindPointer(LoadAccessor(attributes["TANGENT"]), 2, 3);
         } else {
             // todo generate tangents
         }
-
         if (attributes.find("TEXCOORD_0") != attributes.end()) {
             BindPointer(LoadAccessor(attributes["TEXCOORD_0"]), 3, 2);
         }
-
         if (attributes.find("TEXCOORD_1") != attributes.end()) {
             BindPointer(LoadAccessor(attributes["TEXCOORD_1"]), 4, 2);
+        }
+        if (attributes.find("COLOR_0") != attributes.end()) {
+            BindPointer(LoadAccessor(attributes["COLOR_0"]), 5, 3); // todo could be VEC3 or VEC4
+        }
+        if (attributes.find("JOINTS_0") != attributes.end()) {
+            BindPointer(LoadAccessor(attributes["JOINTS_0"]), 6, 4);
+        }
+        if (attributes.find("WEIGHTS_0") != attributes.end()) {
+            BindPointer(LoadAccessor(attributes["JOINTS_0"]), 7, 4);
         }
 
         // Load indices data (if exists)
@@ -247,7 +252,7 @@ Mesh *gltf::LoadMesh(int id) {
 void gltf::BindPointer(Accessor accessor, GLuint index, GLuint size) {
     accessor.bufferView->bind();
     glEnableVertexAttribArray(index);
-    glVertexAttribPointer(index, size, accessor.componentType, GL_FALSE, accessor.bufferView->byteStride,
+    glVertexAttribPointer(index, size, accessor.componentType, accessor.normalised, accessor.bufferView->byteStride,
                           reinterpret_cast<const void *>(accessor.byteOffset));
     glErrorCheck();
 }
@@ -261,6 +266,7 @@ gltf::Accessor gltf::LoadAccessor(int id) {
     accessor.componentType = accessorData["componentType"];
     accessor.count = accessorData["count"];
     accessor.type = accessorData["type"];
+    accessor.normalised = accessorData.value("normalised", false);
 
     return accessor;
 }

@@ -9,6 +9,7 @@
 namespace {
 #ifndef NDEBUG
 #define glErrorCheck() errorCheck(__FILE__, __LINE__)
+    // todo look into glDebugMessageCallback if we're on opengl 4.3
     inline void errorCheck(const char *file, int line) {
         GLuint err = glGetError();
         if (err != GL_NO_ERROR) {

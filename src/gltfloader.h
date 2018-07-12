@@ -35,6 +35,7 @@ namespace gltf {
         GLenum componentType;
         int count;
         std::string type;
+        bool normalised = false;
     };
 
     Asset *LoadAsset(std::string &filePath);
