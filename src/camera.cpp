@@ -22,12 +22,12 @@ void OrthographicCamera::update(float width, float height) {
     projection[2][2] = 2.f / (zNear / zFar);
     projection[3][2] = (zFar + zNear) / (zNear / zFar);
 
-    if (ImGui::Begin("Orthographic Camera")) {
+/*    if (ImGui::Begin("Orthographic Camera")) { todo
         ImGui::Text("%s", &name[0]);
         ImGui::DragFloat("X Mag", &xMag);
         ImGui::DragFloat("Y Mag", &yMag);
         ImGui::End();
-    }
+    }*/
 }
 
 /*
@@ -47,7 +47,7 @@ void PerspectiveCamera::update(float width, float height) {
         projection = glm::perspective(fov, aspectRatio, zNear, zFar);
     }
 
-    if (ImGui::Begin("Perspective Camera")) {
+/*    if (ImGui::Begin("Perspective Camera")) { todo
         ImGui::Text("%s", &name[0]);
         ImGui::SliderFloat("FOV", &fov, 30.f, 120.f);
         ImGui::SliderFloat("Aspect Ratio", &aspectRatio, 0.f, 10.f);
@@ -55,5 +55,5 @@ void PerspectiveCamera::update(float width, float height) {
         ImGui::SameLine(10.f);
         ImGui::DragFloat("Z Far", &zFar, 1.f, .1f, 1000.f);
         ImGui::End();
-    }
+    }*/
 }

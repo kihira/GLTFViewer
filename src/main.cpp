@@ -11,7 +11,9 @@
 #include "gltfloader.h"
 #include "vector.hpp"
 
-static const char* vertShader =
+Camera *camera;
+
+static const char *vertShader =
         "#version 330\n"
         "layout (location = 0) in vec3 aPos;\n"
         "uniform mat4 model;\n"
@@ -22,7 +24,7 @@ static const char* vertShader =
         "    gl_Position = proj * view * model * vec4(aPos, 1.0);\n"
         "}\n\0";
 
-static const char* fragShader =
+static const char *fragShader =
         "#version 330\n"
         "out vec4 FragColor;\n"
         "void main()\n"
@@ -34,12 +36,17 @@ static void glfwErrorCallback(int error, const char *desc) {
     std::cerr << "GLFW Error " << error << ": " << desc << std::endl;
 }
 
+static void glfwFramebufferSizeCallback(GLFWwindow *window, int width, int height) {
+    glViewport(0, 0, width, height);
+    camera->update(width, height);
+}
+
 static void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
-static GLuint compileShader(const char* source, GLuint type) {
+static GLuint compileShader(const char *source, GLuint type) {
     GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, &source, nullptr);
     glCompileShader(shader);
@@ -57,7 +64,6 @@ static GLuint compileShader(const char* source, GLuint type) {
 }
 
 int main() {
-    Camera *camera;
     Asset *asset;
 
     glfwSetErrorCallback(glfwErrorCallback);
@@ -77,26 +83,27 @@ int main() {
 #endif
 
     // Create GLFW window
-    GLFWwindow *window = glfwCreateWindow(1280, 720, "GLTF Viewer", nullptr, nullptr);
-    glfwMakeContextCurrent(window);
+    GLFWwindow *window = glfwCreateWindow(1, 1, "GLTF Viewer", nullptr, nullptr);
     if (!window) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
 
+    glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, glfwFramebufferSizeCallback);
+    glfwSwapInterval(1);
+
     // Init OpenGL and Glad
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
         std::cerr << "Failed to initialize OpenGL context" << std::endl;
         exit(EXIT_FAILURE);
     }
-
     std::cout << "OpenGL " << GLVersion.major << "." << GLVersion.minor << std::endl;
 
     // Set OpenGL stuff
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glfwSwapInterval(1);
 
     // Init imgui
     IMGUI_CHECKVERSION();
@@ -125,14 +132,12 @@ int main() {
 
     glDeleteShader(vert);
     glDeleteShader(frag);
-
     glErrorCheck();
 
-    // Game loop
+    glfwSetWindowSize(window, 1280, 720); // Set window size to trigger framebuffersize callback
+
+    // Render loop
     while (!glfwWindowShouldClose(window)) {
-        int width, height;
-        glfwGetFramebufferSize(window, &width, &height);
-        glViewport(0, 0, width, height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // NOLINT
 
         // Start imgui
@@ -147,15 +152,10 @@ int main() {
         }
         ImGui::EndMainMenuBar();
 
-        // Update camera
-        camera->update(width, height);
-
         glUseProgram(program);
         glErrorCheck();
 
         glm::mat4 view = glm::lookAt(glm::vec3(3.f, 3.f, 3.f), glm::vec3(0, 0, 0), vector::UP);
-        //glm::mat4 view(1.f);
-        //view = glm::translate(view, glm::vec3(0.0f, 0.0f, -1.0f));
         glUniformMatrix4fv(glGetUniformLocation(program, "proj"), 1, GL_FALSE, glm::value_ptr(camera->projection));
         glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_FALSE, glm::value_ptr(view));
         glm::mat4 model(1.f);
@@ -169,7 +169,7 @@ int main() {
         }
 
         ImGui::Render();
-        // ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
         glfwPollEvents();
