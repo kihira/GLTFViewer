@@ -23,7 +23,7 @@ public:
     std::vector<Node *> children;
     Camera *camera;
     Mesh *mesh;
-    bool isStatic; // Whether the matrix will ever change
+    bool isStatic = false; // Whether the matrix will ever change
 };
 
 

@@ -10,6 +10,7 @@
 #include "camera/camera.h"
 #include "gltfloader.h"
 #include "vector.hpp"
+#include "camera/perspective.h"
 
 Camera *camera;
 GLuint program;

@@ -40,15 +40,21 @@ namespace gltf {
 
     Asset *LoadAsset(std::string &filePath);
 
-    Node *LoadNode(int id);
+    /**
+     * Loads data for a Node from the asset if already loaded, if not, loads it from json data and saves it to the asset
+     * @param asset The asset
+     * @param id The node id
+     * @return The node data
+     */
+    Node *LoadNode(Asset &asset, int id);
 
-    Camera *LoadCamera(int id);
+    Camera *LoadCamera(Asset &asset, int id);
 
-    Mesh *LoadMesh(int id);
+    Mesh *LoadMesh(Asset &asset, int id);
 
-    Accessor LoadAccessor(int id);
+    Accessor LoadAccessor(Asset &asset, int id);
 
-    BufferView *LoadBufferView(int id);
+    BufferView *LoadBufferView(Asset &asset, int id);
 
     void BindPointer(Accessor accessor, GLuint index, GLuint size);
 };

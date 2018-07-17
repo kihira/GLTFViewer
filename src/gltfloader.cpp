@@ -9,6 +9,7 @@
 #include "glhelper.hpp"
 #include "asset.h"
 #include "camera/orthographic.h"
+#include "camera/perspective.h"
 
 nlohmann::json jsonData;
 std::vector<unsigned char> binData;
@@ -99,7 +100,18 @@ Asset *gltf::LoadAsset(std::string &filePath) {
         std::cerr << "Unable to load asset as it requires extensions not available" << std::endl;
     }
 
-    auto *asset = new Asset(filePath); // todo get just filename
+    // todo get just filename
+    auto *asset = new Asset(filePath);
+
+    // Pre allocate space for the nodes
+    if (jsonData.find("nodes") != jsonData.end()) {
+        asset->nodes = std::vector<Node *>(jsonData["nodes"].size(), nullptr);
+    }
+
+    // Pre allocate space for the meshes
+    if (jsonData.find("meshes") != jsonData.end()) {
+        asset->meshes = std::vector<Mesh *>(jsonData["meshes"].size(), nullptr);
+    }
 
     // Load scenes
     if (jsonData.find("scenes") != jsonData.end()) {
@@ -108,7 +120,7 @@ Asset *gltf::LoadAsset(std::string &filePath) {
             asset->scenes.push_back(scene);
             if (elem.find("nodes") == elem.end()) continue;
             for (int nodeId : elem["nodes"]) {
-                scene->nodes.push_back(LoadNode(nodeId));
+                scene->nodes.push_back(LoadNode(*asset, nodeId));
             }
         }
     }
@@ -120,13 +132,18 @@ Asset *gltf::LoadAsset(std::string &filePath) {
     return asset;
 }
 
-Node *gltf::LoadNode(int id) {
+Node *gltf::LoadNode(Asset &asset, int id) {
+    if (asset.nodes[id] != nullptr) {
+        return asset.nodes[id];
+    }
+
+    // Create new node if it doesn't already exist
     nlohmann::json nodeData = jsonData["nodes"][id];
     auto *node = new Node();
 
     if (nodeData.find("children") != nodeData.end()) {
         for (auto &i : nodeData["children"]) {
-            node->children.push_back(LoadNode(i));
+            node->children.push_back(LoadNode(asset, i));
         }
     }
 
@@ -136,7 +153,6 @@ Node *gltf::LoadNode(int id) {
         node->isStatic = true;
     } else {
         if (nodeData.find("translation") != nodeData.end()) {
-            // todo look into casting instead?
             node->pos.x = nodeData["translation"][0];
             node->pos.y = nodeData["translation"][1];
             node->pos.z = nodeData["translation"][2];
@@ -155,18 +171,19 @@ Node *gltf::LoadNode(int id) {
     }
 
     if (nodeData.find("camera") != nodeData.end()) {
-        node->camera = LoadCamera(nodeData["camera"]);
+        node->camera = LoadCamera(asset, nodeData["camera"]);
     }
 
     if (nodeData.find("mesh") != nodeData.end()) {
-        node->mesh = LoadMesh(nodeData["mesh"]);
+        node->mesh = LoadMesh(asset, nodeData["mesh"]);
     }
 
+    asset.nodes[id] = node;
     return node;
 }
 
 
-Camera *gltf::LoadCamera(int id) {
+Camera *gltf::LoadCamera(Asset &asset, int id) {
     nlohmann::json cameraData = jsonData["cameras"][id];
 
     if (cameraData["type"] == "perspective") {
@@ -192,7 +209,12 @@ Camera *gltf::LoadCamera(int id) {
     }
 }
 
-Mesh *gltf::LoadMesh(int id) {
+Mesh *gltf::LoadMesh(Asset &asset, int id) {
+    if (asset.meshes[id] != nullptr) {
+        return asset.meshes[id];
+    }
+
+    // Create new mesh
     nlohmann::json meshData = jsonData["meshes"][id];
     auto *mesh = new Mesh();
 
@@ -206,39 +228,39 @@ Mesh *gltf::LoadMesh(int id) {
 
         // Load attributes data
         if (attributes.find("POSITION") != attributes.end()) {
-            Accessor accessor = LoadAccessor(attributes["POSITION"]);
+            Accessor accessor = LoadAccessor(asset, attributes["POSITION"]);
             primitive->vertices = accessor.count;
             BindPointer(accessor, 0, 3);
         }
         if (attributes.find("NORMAL") != attributes.end()) {
-             BindPointer(LoadAccessor(attributes["NORMAL"]), 1, 3);
+            BindPointer(LoadAccessor(asset, attributes["NORMAL"]), 1, 3);
         } else {
             // todo generate normals
         }
         if (attributes.find("TANGENT") != attributes.end()) {
-            BindPointer(LoadAccessor(attributes["TANGENT"]), 2, 3);
+            BindPointer(LoadAccessor(asset, attributes["TANGENT"]), 2, 3);
         } else {
             // todo generate tangents
         }
         if (attributes.find("TEXCOORD_0") != attributes.end()) {
-            BindPointer(LoadAccessor(attributes["TEXCOORD_0"]), 3, 2);
+            BindPointer(LoadAccessor(asset, attributes["TEXCOORD_0"]), 3, 2);
         }
         if (attributes.find("TEXCOORD_1") != attributes.end()) {
-            BindPointer(LoadAccessor(attributes["TEXCOORD_1"]), 4, 2);
+            BindPointer(LoadAccessor(asset, attributes["TEXCOORD_1"]), 4, 2);
         }
         if (attributes.find("COLOR_0") != attributes.end()) {
-            BindPointer(LoadAccessor(attributes["COLOR_0"]), 5, 3); // todo could be VEC3 or VEC4
+            BindPointer(LoadAccessor(asset, attributes["COLOR_0"]), 5, 3); // todo could be VEC3 or VEC4
         }
         if (attributes.find("JOINTS_0") != attributes.end()) {
-            BindPointer(LoadAccessor(attributes["JOINTS_0"]), 6, 4);
+            BindPointer(LoadAccessor(asset, attributes["JOINTS_0"]), 6, 4);
         }
         if (attributes.find("WEIGHTS_0") != attributes.end()) {
-            BindPointer(LoadAccessor(attributes["JOINTS_0"]), 7, 4);
+            BindPointer(LoadAccessor(asset, attributes["JOINTS_0"]), 7, 4);
         }
 
         // Load indices data (if exists)
         if (primitiveData.find("indices") != primitiveData.end()) {
-            Accessor accessor = LoadAccessor(primitiveData["indices"]);
+            Accessor accessor = LoadAccessor(asset, primitiveData["indices"]);
             accessor.bufferView->target = GL_ELEMENT_ARRAY_BUFFER;
             accessor.bufferView->bind();
             primitive->indiciesComponentType = accessor.componentType;
@@ -247,22 +269,24 @@ Mesh *gltf::LoadMesh(int id) {
         mesh->primitives.push_back(primitive);
     }
 
+    asset.meshes[id] = mesh;
     return mesh;
 }
 
 void gltf::BindPointer(Accessor accessor, GLuint index, GLuint size) {
     accessor.bufferView->bind();
     glEnableVertexAttribArray(index);
-    glVertexAttribPointer(index, size, accessor.componentType, accessor.normalised, accessor.bufferView->byteStride,
+    glVertexAttribPointer(index, size, accessor.componentType, static_cast<GLboolean>(accessor.normalised),
+                          accessor.bufferView->byteStride,
                           reinterpret_cast<const void *>(accessor.byteOffset));
     glErrorCheck();
 }
 
-gltf::Accessor gltf::LoadAccessor(int id) {
+gltf::Accessor gltf::LoadAccessor(Asset &asset, int id) {
     nlohmann::json accessorData = jsonData["accessors"][id];
 
     gltf::Accessor accessor;
-    accessor.bufferView = LoadBufferView(accessorData["bufferView"]);
+    accessor.bufferView = LoadBufferView(asset, accessorData["bufferView"]);
     accessor.byteOffset = accessorData.value("byteOffset", 0);
     accessor.componentType = accessorData["componentType"];
     accessor.count = accessorData["count"];
@@ -272,7 +296,7 @@ gltf::Accessor gltf::LoadAccessor(int id) {
     return accessor;
 }
 
-gltf::BufferView *gltf::LoadBufferView(int id) {
+gltf::BufferView *gltf::LoadBufferView(Asset &asset, int id) {
     if (bufferViewCache.find(id) != bufferViewCache.end()) {
         return bufferViewCache[id];
     }
