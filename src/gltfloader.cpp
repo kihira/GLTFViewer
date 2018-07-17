@@ -4,10 +4,11 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glad/glad.h>
 #include "gltfloader.h"
-#include "camera.h"
+#include "camera/camera.h"
 #include "node.h"
 #include "glhelper.hpp"
 #include "asset.h"
+#include "camera/orthographic.h"
 
 nlohmann::json jsonData;
 std::vector<unsigned char> binData;

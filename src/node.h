@@ -5,7 +5,7 @@
 #include <glm/vec3.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <vector>
-#include "camera.h"
+#include "camera/camera.h"
 #include "mesh.h"
 
 class Node {

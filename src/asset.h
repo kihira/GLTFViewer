@@ -9,8 +9,8 @@
 class Asset {
 public:
     const std::string name;
-    std::vector<Scene *> scenes;
     short scene = 0;
+    std::vector<Scene *> scenes;
 
     explicit Asset(const std::string &name);
 
