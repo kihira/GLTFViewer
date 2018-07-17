@@ -10,10 +10,12 @@
 #include "asset.h"
 #include "camera/orthographic.h"
 #include "camera/perspective.h"
+#include "bufferview.h"
+#include "accessor.h"
 
 nlohmann::json jsonData;
 std::vector<unsigned char> binData;
-std::map<int, gltf::BufferView *> bufferViewCache;
+std::map<int, BufferView *> bufferViewCache;
 
 Asset *gltf::LoadAsset(std::string &filePath) {
     if (!filePath.compare(filePath.length() - 4, 3, "glb")) {
@@ -148,8 +150,8 @@ Node *gltf::LoadNode(Asset &asset, int id) {
     }
 
     if (nodeData.find("matrix") != nodeData.end()) {
-        std::vector<float> matrix = nodeData["matrix"];
-        node->matrix = glm::make_mat4(&matrix[0]);
+        //std::vector<float> matrix = nodeData["matrix"];
+        node->matrix = glm::make_mat4(&((std::vector<float>) nodeData["matrix"])[0]);
         node->isStatic = true;
     } else {
         if (nodeData.find("translation") != nodeData.end()) {
@@ -273,7 +275,7 @@ Mesh *gltf::LoadMesh(Asset &asset, int id) {
     return mesh;
 }
 
-void gltf::BindPointer(Accessor accessor, GLuint index, GLuint size) {
+void gltf::BindPointer(Accessor &accessor, GLuint index, GLuint size) {
     accessor.bufferView->bind();
     glEnableVertexAttribArray(index);
     glVertexAttribPointer(index, size, accessor.componentType, static_cast<GLboolean>(accessor.normalised),
@@ -282,10 +284,10 @@ void gltf::BindPointer(Accessor accessor, GLuint index, GLuint size) {
     glErrorCheck();
 }
 
-gltf::Accessor gltf::LoadAccessor(Asset &asset, int id) {
+Accessor gltf::LoadAccessor(Asset &asset, int id) {
     nlohmann::json accessorData = jsonData["accessors"][id];
 
-    gltf::Accessor accessor;
+    Accessor accessor;
     accessor.bufferView = LoadBufferView(asset, accessorData["bufferView"]);
     accessor.byteOffset = accessorData.value("byteOffset", 0);
     accessor.componentType = accessorData["componentType"];
@@ -296,7 +298,7 @@ gltf::Accessor gltf::LoadAccessor(Asset &asset, int id) {
     return accessor;
 }
 
-gltf::BufferView *gltf::LoadBufferView(Asset &asset, int id) {
+BufferView *gltf::LoadBufferView(Asset &asset, int id) {
     if (bufferViewCache.find(id) != bufferViewCache.end()) {
         return bufferViewCache[id];
     }
