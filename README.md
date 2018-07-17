@@ -1,5 +1,5 @@
 # GLTF Viewer
-A little program to preview GLTF models with a few custom settings
+A little program to preview GLTF models with a few custom settings.
 
 Built with [GLFW3](http://www.glfw.org), [glad](https://github.com/Dav1dde/glad), [GLM](https://glm.g-truc.net), [imgui](https://github.com/ocornut/imgui) and [nholmann/json](https://github.com/nlohmann/json) using [CMake](https://cmake.org/) and C++
 
@@ -12,6 +12,12 @@ Built with [GLFW3](http://www.glfw.org), [glad](https://github.com/Dav1dde/glad)
 - Live reloading of assets
 - Multi camera viewports
 - Custom skybox and ILB
+
+## Goals
+The goal of this project was to learn more about glTF, learn about creating PBR and try to create a useable program that
+might have a real world use. I haven't designed the program to be as efficient on memory as possible as the intended use
+case is for previewing scenes and/or models. There are many optimisations that could be made if loading a glTF file for
+a game to reduce loading time and memory usage.
 
 ## Build
 GLTF Viewer uses CMake to build, allowing it to be used across multiple systems.
