@@ -1,4 +1,6 @@
+#include <glm/mat4x4.hpp>
 #include "scene.h"
+#include "node.h"
 
 void Scene::render() {
     for (auto& node: nodes) {

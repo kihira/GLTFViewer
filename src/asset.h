@@ -3,7 +3,11 @@
 
 
 #include <vector>
-#include "scene.h"
+#include <string>
+
+class Scene;
+class Node;
+class Mesh;
 
 /**
  * Asset - A class that represents a glTF asset

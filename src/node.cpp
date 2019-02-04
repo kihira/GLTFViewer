@@ -2,6 +2,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "node.h"
 #include "glhelper.hpp"
+#include "camera/camera.h"
+#include "mesh.h"
 
 Node::~Node() {
     delete camera;

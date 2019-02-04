@@ -1,4 +1,7 @@
 #include "asset.h"
+#include "scene.h"
+
+Asset::Asset(const std::string &name) : name(name) {}
 
 void Asset::render() {
     if (scenes.empty()) return;
@@ -6,4 +9,3 @@ void Asset::render() {
     scenes[scene]->render();
 }
 
-Asset::Asset(const std::string &name) : name(name) {}

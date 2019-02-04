@@ -11,6 +11,8 @@
 #include "gltfloader.h"
 #include "vector.hpp"
 #include "camera/perspective.h"
+#include "glhelper.hpp"
+#include "asset.h"
 
 Camera *camera;
 GLuint program;

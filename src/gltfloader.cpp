@@ -12,6 +12,8 @@
 #include "camera/perspective.h"
 #include "bufferview.h"
 #include "accessor.h"
+#include "scene.h"
+#include "mesh.h"
 
 nlohmann::json jsonData;
 std::vector<unsigned char> binData;
@@ -150,8 +152,8 @@ Node *gltf::LoadNode(Asset &asset, int id) {
     }
 
     if (nodeData.find("matrix") != nodeData.end()) {
-        //std::vector<float> matrix = nodeData["matrix"];
-        node->matrix = glm::make_mat4(&((std::vector<float>) nodeData["matrix"])[0]);
+        std::vector<float> matrix = nodeData["matrix"];
+        node->matrix = glm::make_mat4(&matrix[0]);
         node->isStatic = true;
     } else {
         if (nodeData.find("translation") != nodeData.end()) {
@@ -275,7 +277,7 @@ Mesh *gltf::LoadMesh(Asset &asset, int id) {
     return mesh;
 }
 
-void gltf::BindPointer(Accessor &accessor, GLuint index, GLuint size) {
+void gltf::BindPointer(Accessor accessor, GLuint index, GLuint size) {
     accessor.bufferView->bind();
     glEnableVertexAttribArray(index);
     glVertexAttribPointer(index, size, accessor.componentType, static_cast<GLboolean>(accessor.normalised),

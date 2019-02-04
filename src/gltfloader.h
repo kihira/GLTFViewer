@@ -1,12 +1,14 @@
 #include <string>
-#include "node.h"
-#include "mesh.h"
-#include "asset.h"
-#include "bufferview.h"
-#include "accessor.h"
 
 #ifndef GLTFVIEWER_GLFTLOADER_H
 #define GLTFVIEWER_GLFTLOADER_H
+
+class Asset;
+class Node;
+class Camera;
+class Mesh;
+class Accessor;
+class BufferView;
 
 
 namespace gltf {
@@ -29,7 +31,7 @@ namespace gltf {
 
     BufferView *LoadBufferView(Asset &asset, int id);
 
-    void BindPointer(Accessor &accessor, GLuint index, GLuint size);
+    void BindPointer(Accessor accessor, GLuint index, GLuint size);
 };
 
 #endif

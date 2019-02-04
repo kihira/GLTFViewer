@@ -2,8 +2,10 @@
 #define GLTFVIEWER_SCENE_H
 
 
+#include <vector>
 #include <string>
-#include "node.h"
+
+class Node;
 
 class Scene {
 public:
