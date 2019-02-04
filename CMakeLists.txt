@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(GLTFViewer)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 
 if (VCPKG_TOOLCHAIN OR NOT WIN32)
@@ -13,7 +13,7 @@ endif ()
 if (USE_GLM_PACKAGE)
     find_package(GLM REQUIRED)
 else ()
-    include_directories(GLTFViewer glm)
+    include_directories(GLTFViewer ./glm)
 endif ()
 
 # Load GLFW
