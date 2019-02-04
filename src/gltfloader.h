@@ -29,7 +29,7 @@ namespace gltf {
 
     BufferView *LoadBufferView(Asset &asset, int id);
 
-    void BindPointer(Accessor &accessor, GLuint index, GLuint size);
+    void BindPointer(Accessor accessor, GLuint index, GLuint size);
 };
 
 #endif

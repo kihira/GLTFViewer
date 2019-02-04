@@ -1,6 +1,8 @@
 #ifndef GLTFVIEWER_BUFFERVIEW_H
 #define GLTFVIEWER_BUFFERVIEW_H
 
+#include "glhelper.hpp"
+
 struct BufferView {
     unsigned int vbo = 0;
     unsigned char *data = nullptr; // Pointer to the start of the data
@@ -20,7 +22,5 @@ struct BufferView {
         glErrorCheck();
     }
 };
-
-#include "glhelper.hpp"
 
 #endif //GLTFVIEWER_BUFFERVIEW_H

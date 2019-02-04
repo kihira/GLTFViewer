@@ -90,7 +90,7 @@ int main() {
 #endif
 
     // Create GLFW window
-    GLFWwindow *window = glfwCreateWindow(1, 1, "GLTF Viewer", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(1279, 719, "GLTF Viewer", nullptr, nullptr);
     if (!window) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();

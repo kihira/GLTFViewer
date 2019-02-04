@@ -8,7 +8,7 @@ public:
     float xMag;
     float yMag;
 
-    explicit OrthographicCamera(std::__cxx11::string name);
+    explicit OrthographicCamera(std::string name);
 
 private:
     void update(float width, float height) override;
