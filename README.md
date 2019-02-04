@@ -1,6 +1,8 @@
 # GLTF Viewer
 A little program to preview GLTF models with a few custom settings.
 
+Currently focusing on University studies so development has slowed down.
+
 Built with [GLFW3](http://www.glfw.org), [glad](https://github.com/Dav1dde/glad), [GLM](https://glm.g-truc.net), [imgui](https://github.com/ocornut/imgui) and [nholmann/json](https://github.com/nlohmann/json) using [CMake](https://cmake.org/) and C++
 
 ## Features
