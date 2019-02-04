@@ -1,6 +1,6 @@
 #include "orthographic.h"
 
-OrthographicCamera::OrthographicCamera(std::__cxx11::string name) : Camera(name) {}
+OrthographicCamera::OrthographicCamera(std::string name) : Camera(name) {}
 
 void OrthographicCamera::update(float width, float height) {
     //projection = glm::ortho(0.f, xMag, 0.f, yMag);

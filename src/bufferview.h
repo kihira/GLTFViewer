@@ -23,6 +23,4 @@ struct BufferView {
     }
 };
 
-#include "glhelper.hpp"
-
 #endif //GLTFVIEWER_BUFFERVIEW_H
